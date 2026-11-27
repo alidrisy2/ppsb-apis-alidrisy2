@@ -1,0 +1,2923 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PPSB - PP. APIS Al Idrisy 2 Jember (2027 - 2035)</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Plus Jakarta Sans & Amiri (untuk sentuhan kaligrafi/arab) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Library untuk Ekspor Excel (.xlsx) & ZIP Berkas -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        serif: ['"Amiri"', 'serif'],
+                    },
+                    colors: {
+                        pesantren: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            500: '#16a34a',
+                            600: '#15803d',
+                            700: '#166534',
+                            800: '#14532d',
+                            900: '#052e16',
+                        },
+                        emas: {
+                            100: '#fef3c7',
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                            700: '#b45309',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Pola latar belakang islami halus */
+        .islamic-pattern {
+            background-color: #14532d;
+            background-image: radial-gradient(#166534 1px, transparent 1px), radial-gradient(#166534 1px, #14532d 1px);
+            background-size: 24px 24px;
+            background-position: 0 0, 12px 12px;
+        }
+
+        /* Pengaturan Cetak / Print PDF Resmi */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #print-area, #print-area * {
+                visibility: visible;
+            }
+            #print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 0;
+                margin: 0;
+                background: white !important;
+                box-shadow: none !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            @page {
+                size: A4 portrait;
+                margin: 12mm 15mm;
+            }
+        }
+
+        /* Animasi halus */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- ================= NAVBAR / HEADER UTAMA ================= -->
+    <header class="islamic-pattern text-white shadow-lg border-b-4 border-emas-500 sticky top-0 z-40 no-print">
+        <div class="max-w-5xl mx-auto px-4 py-3.5 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="switchMainView('public')">
+                <!-- Logo Resmi PP. APIS Al Idrisy 2 Jember (Google Drive + Fallback) -->
+                <div class="w-11 h-11 rounded-xl bg-white p-1 border border-emas-400/80 flex items-center justify-center shrink-0 shadow-md overflow-hidden">
+                    <img src="https://drive.google.com/thumbnail?id=159cDCjXrT7bl5BhBGXKYVGLFflelKgE4&sz=w256" 
+                         alt="Logo PP. APIS Al Idrisy 2 Jember" 
+                         class="w-full h-full object-contain"
+                         onerror="this.onerror=null; this.src='https://lh3.googleusercontent.com/d/159cDCjXrT7bl5BhBGXKYVGLFflelKgE4=w256';">
+                </div>
+                <div>
+                    <p class="text-[11px] uppercase tracking-wider text-emas-400 font-semibold">Penerimaan Santri Baru • <span id="header-active-tahun-label">2027/2028</span></p>
+                    <h1 class="text-base sm:text-lg font-extrabold tracking-tight leading-tight">PP. APIS Al Idrisy 2 Jember</h1>
+                </div>
+            </div>
+
+            <!-- Navigasi Mode Publik / Admin -->
+            <div class="flex items-center gap-2">
+                <button id="nav-btn-public" onclick="switchMainView('public')" class="px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-white text-pesantren-900 shadow-sm transition">
+                    Formulir
+                </button>
+                <button id="nav-btn-admin" onclick="switchMainView('admin')" class="px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-pesantren-800/80 hover:bg-pesantren-700 text-emas-100 border border-pesantren-600 flex items-center gap-1.5 transition">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-emas-400"></i>
+                    <span id="nav-admin-label">Panitia</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ================= TOAST / NOTIFIKASI KUSTOM ================= -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full px-4 sm:px-0 pointer-events-none no-print"></div>
+
+    <!-- ================= KONTEN UTAMA ================= -->
+    <main class="flex-1 w-full max-w-5xl mx-auto px-4 py-6 sm:py-8">
+
+        <!-- ========================================================= -->
+        <!-- 1. HALAMAN PUBLIK: FORMULIR PENDAFTARAN (4 LANGKAH)       -->
+        <!-- ========================================================= -->
+        <section id="view-public" class="fade-in">
+            <!-- Banner Sambutan -->
+            <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-stone-200/80 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-pesantren-50 text-pesantren-700 border border-pesantren-200 mb-2">
+                        <span class="w-2 h-2 rounded-full bg-pesantren-600 animate-pulse"></span>
+                        Pendaftaran Online Resmi • Tahun Ajaran <span id="banner-active-tahun-label" class="font-bold">2027/2028</span>
+                    </span>
+                    <h2 class="text-xl sm:text-2xl font-bold text-slate-900">Formulir Pendaftaran Santri Baru</h2>
+                    <p class="text-sm text-slate-600 mt-1">Silakan lengkapi data calon santri dan berkas persyaratan dengan benar. Data tersimpan otomatis saat berpindah langkah.</p>
+                </div>
+                <div class="text-left sm:text-right shrink-0 bg-amber-50/80 border border-amber-200/80 px-4 py-2.5 rounded-xl">
+                    <p class="text-xs text-amber-800 font-medium">Status Sinkronisasi</p>
+                    <p id="public-sync-badge" class="text-xs font-bold text-pesantren-700 flex items-center sm:justify-end gap-1 mt-0.5">
+                        <i data-lucide="cloud-check" class="w-3.5 h-3.5"></i> Terhubung ke Database & Google Sheet
+                    </p>
+                </div>
+            </div>
+
+            <!-- STEPPER INDIKATOR PROGRES -->
+            <div id="stepper-container" class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-stone-200/80 mb-6">
+                <div class="flex items-center justify-between relative">
+                    <!-- Garis Latar -->
+                    <div class="absolute left-0 top-5 w-full h-1 bg-stone-200 rounded-full -z-0"></div>
+                    <div id="stepper-progress-bar" class="absolute left-0 top-5 h-1 bg-pesantren-600 rounded-full transition-all duration-300 -z-0" style="width: 0%;"></div>
+
+                    <!-- Step 1 -->
+                    <button type="button" onclick="goToStep(1)" class="step-btn relative z-10 flex flex-col items-center gap-1.5 w-1/4 group focus:outline-none">
+                        <div id="step-circle-1" class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-pesantren-600 text-white ring-4 ring-pesantren-100 transition">1</div>
+                        <span id="step-label-1" class="text-xs font-bold text-pesantren-800 text-center">Calon Santri</span>
+                    </button>
+
+                    <!-- Step 2 -->
+                    <button type="button" onclick="goToStep(2)" class="step-btn relative z-10 flex flex-col items-center gap-1.5 w-1/4 group focus:outline-none">
+                        <div id="step-circle-2" class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-white border-2 border-stone-300 text-stone-500 transition">2</div>
+                        <span id="step-label-2" class="text-xs font-medium text-stone-500 text-center">Orang Tua/Wali</span>
+                    </button>
+
+                    <!-- Step 3 -->
+                    <button type="button" onclick="goToStep(3)" class="step-btn relative z-10 flex flex-col items-center gap-1.5 w-1/4 group focus:outline-none">
+                        <div id="step-circle-3" class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-white border-2 border-stone-300 text-stone-500 transition">3</div>
+                        <span id="step-label-3" class="text-xs font-medium text-stone-500 text-center">Unggah Berkas</span>
+                    </button>
+
+                    <!-- Step 4 -->
+                    <button type="button" onclick="goToStep(4)" class="step-btn relative z-10 flex flex-col items-center gap-1.5 w-1/4 group focus:outline-none">
+                        <div id="step-circle-4" class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-white border-2 border-stone-300 text-stone-500 transition">4</div>
+                        <span id="step-label-4" class="text-xs font-medium text-stone-500 text-center">Konfirmasi</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- FORMULIR UTAMA -->
+            <form id="ppsb-form" onsubmit="handleFormSubmit(event)" class="bg-white rounded-2xl shadow-sm border border-stone-200/80 overflow-hidden">
+                
+                <!-- ==================== LANGKAH 1: DATA CALON SANTRI ==================== -->
+                <div id="form-step-1" class="p-5 sm:p-8 space-y-5 fade-in">
+                    <div class="border-b border-stone-200 pb-3">
+                        <h3 class="text-lg font-bold text-pesantren-900 flex items-center gap-2">
+                            <span class="w-7 h-7 rounded-lg bg-pesantren-100 text-pesantren-700 flex items-center justify-center text-sm font-extrabold">1</span>
+                            Data Calon Santri
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-500 mt-1">Isi biodata calon santri sesuai dengan Akta Kelahiran / Kartu Keluarga.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <!-- Info Tahun Ajaran Aktif (Diatur oleh Panitia) -->
+                        <div class="md:col-span-2 bg-pesantren-50 border border-pesantren-200 rounded-xl px-4 py-3 flex items-center justify-between">
+                            <span class="text-xs sm:text-sm font-semibold text-pesantren-900">Tahun Ajaran Pendaftaran Aktif:</span>
+                            <span id="public-active-tahun-label" class="text-xs sm:text-sm font-extrabold text-pesantren-800 bg-white px-3 py-1 rounded-lg border border-pesantren-200">2027/2028</span>
+                        </div>
+
+                        <!-- 1. Nama Lengkap -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Nama Lengkap Calon Santri <span class="text-red-500">*</span></label>
+                            <input type="text" id="nama_lengkap" name="nama_lengkap" placeholder="Contoh: Ahmad Fauzan Al-Idrisy" class="w-full px-4 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-pesantren-500 focus:border-pesantren-500 outline-none text-base transition" required>
+                            <p id="err-nama_lengkap" class="text-xs text-red-600 mt-1 hidden"></p>
+                        </div>
+
+                        <!-- 2. Tempat Lahir -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Tempat Lahir <span class="text-red-500">*</span></label>
+                            <input type="text" id="tempat_lahir" name="tempat_lahir" placeholder="Contoh: Jember" class="w-full px-4 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-pesantren-500 focus:border-pesantren-500 outline-none text-base transition" required>
+                            <p id="err-tempat_lahir" class="text-xs text-red-600 mt-1 hidden"></p>
+                        </div>
+
+                        <!-- 3. Tanggal Lahir & 4. Umur Otomatis -->
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="col-span-2">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Tanggal Lahir <span class="text-red-500">*</span></label>
+                                <input type="date" id="tanggal_lahir" name="tanggal_lahir" onchange="calculateAge()" class="w-full px-3.5 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-pesantren-500 focus:border-pesantren-500 outline-none text-base transition" required>
+                                <p id="err-tanggal_lahir" class="text-xs text-red-600 mt-1 hidden"></p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Umur</label>
+                                <input type="text" id="umur" name="umur" readonly placeholder="- Thn" class="w-full px-3 py-3 rounded-xl border border-stone-200 bg-stone-100 text-slate-600 font-semibold text-center text-base cursor-not-allowed">
+                            </div>
+                        </div>
+
+                        <!-- 5. Alamat Rumah -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Alamat Rumah Lengkap <span class="text-red-500">*</span></label>
+                            <textarea id="alamat_rumah" name="alamat_rumah" rows="3" placeholder="Nama Jalan/Dusun, RT/RW, Desa/Kelurahan, Kecamatan, Kabupaten/Kota" class="w-full px-4 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-pesantren-500 focus:border-pesantren-500 outline-none text-base transition" required></textarea>
+                            <p id="err-alamat_rumah" class="text-xs text-red-600 mt-1 hidden"></p>
+                        </div>
+
+                        <!-- 6. Sekolah Asal -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Sekolah Asal <span class="text-red-500">*</span></label>
+                            <input type="text" id="sekolah_asal" name="sekolah_asal" placeholder="Contoh: SDN Jember Lor 01 / MI Al-Hidayah" class="w-full px-4 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-pesantren-500 focus:border-pesantren-500 outline-none text-base transition" required>
+                            <p id="err-sekolah_asal" class="text-xs text-red-600 mt-1 hidden"></p>
+                        </div>
+
+                        <!-- 7. Hobi -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Hobi <span class="text-slate-400 font-normal">(Opsional)</span></label>
+                            <input type="text" id="hobi" name="hobi" placeholder="Contoh: Membaca, Kaligrafi, Sepak Bola" class="w-full px-4 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-pesantren-500 focus:border-pesantren-500 outline-none text-base transition">
+                        </div>
+
+                        <!-- 8. No. Telp/HP (WA) Calon Santri -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">No. Telp / HP (WhatsApp) Calon Santri <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <span class="absolute left-3.5 top-3.5 text-slate-400">
+                                    <i data-lucide="phone" class="w-5 h-5"></i>
+                                </span>
+                                <input type="tel" id="no_hp_santri" name="no_hp_santri" placeholder="Contoh: 081234567890 atau +6281234567890" class="w-full pl-11 pr-4 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-pesantren-500 focus:border-pesantren-500 outline-none text-base transition" required>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1">Gunakan nomor aktif (format 08xx atau +628xx). Jika belum punya, isi nomor WA orang tua.</p>
+                            <p id="err-no_hp_santri" class="text-xs text-red-600 mt-1 hidden"></p>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 flex justify-end border-t border-stone-100">
+                        <button type="button" onclick="nextStep(1)" class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-pesantren-600 hover:bg-pesantren-700 text-white font-bold text-base shadow-md flex items-center justify-center gap-2 transition">
+                            Lanjut ke Data Orang Tua
+                            <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ==================== LANGKAH 2: DATA ORANG TUA / WALI ==================== -->
+                <div id="form-step-2" class="p-5 sm:p-8 space-y-5 hidden fade-in">
+                    <div class="border-b border-stone-200 pb-3">
+                        <h3 class="text-lg font-bold text-pesantren-900 flex items-center gap-2">
+                            <span class="w-7 h-7 rounded-lg bg-pesantren-100 text-pesantren-700 flex items-center justify-center text-sm font-extrabold">2</span>
+                            Data Orang Tua / Wali
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-500 mt-1">Informasi ayah, ibu, dan nomor WhatsApp aktif orang tua/wali untuk konfirmasi pendaftaran.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <!-- 1. Nama Ayah -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Nama Lengkap Ayah <span class="text-red-500">*</span></label>
+                            <input type="text" id="nama_ayah" name="nama_ayah" placeholder="Nama lengkap ayah kandung/wali" class="w-full px-4 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-pesantren-500 focus:border-pesantren-500 outline-none text-base transition" required>
+                            <p id="err-nama_ayah" class="text-xs text-red-600 mt-1 hidden"></p>
+                        </div>
+
+                        <!-- 2. Pekerjaan Ayah -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Pekerjaan Ayah</label>
+                            <input type="text" id="pekerjaan_ayah" name="pekerjaan_ayah" placeholder="Contoh: Wiraswasta / Petani / Guru" class="w-full px-4 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-pesantren-500 focus:border-pesantren-500 outline-none text-base transition">
+                        </div>
+
+                        <!-- 3. Nama Ibu -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Nama Lengkap Ibu <span class="text-red-500">*</span></label>
+                            <input type="text" id="nama_ibu" name="nama_ibu" placeholder="Nama lengkap ibu kandung/wali" class="w-full px-4 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-pesantren-500 focus:border-pesantren-500 outline-none text-base transition" required>
+                            <p id="err-nama_ibu" class="text-xs text-red-600 mt-1 hidden"></p>
+                        </div>
+
+                        <!-- 4. Pekerjaan Ibu -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Pekerjaan Ibu</label>
+                            <input type="text" id="pekerjaan_ibu" name="pekerjaan_ibu" placeholder="Contoh: Ibu Rumah Tangga / Pedagang" class="w-full px-4 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-pesantren-500 focus:border-pesantren-500 outline-none text-base transition">
+                        </div>
+
+                        <!-- 5. No. Telp/HP (WA) Orang Tua/Wali -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-semibold text-slate-700 mb-1.5">No. Telp / HP (WhatsApp) Orang Tua / Wali <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <span class="absolute left-3.5 top-3.5 text-pesantren-600">
+                                    <i data-lucide="message-circle" class="w-5 h-5"></i>
+                                </span>
+                                <input type="tel" id="no_hp_ortu" name="no_hp_ortu" placeholder="Contoh: 081234567890" class="w-full pl-11 pr-4 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-pesantren-500 focus:border-pesantren-500 outline-none text-base transition" required>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1">Bukti pendaftaran dan informasi verifikasi dari panitia akan dikirimkan ke nomor WhatsApp ini.</p>
+                            <p id="err-no_hp_ortu" class="text-xs text-red-600 mt-1 hidden"></p>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 flex flex-col-reverse sm:flex-row justify-between gap-3 border-t border-stone-100">
+                        <button type="button" onclick="goToStep(1)" class="w-full sm:w-auto px-5 py-3.5 rounded-xl border border-stone-300 hover:bg-stone-100 text-slate-700 font-semibold text-base flex items-center justify-center gap-2 transition">
+                            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                            Kembali
+                        </button>
+                        <button type="button" onclick="nextStep(2)" class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-pesantren-600 hover:bg-pesantren-700 text-white font-bold text-base shadow-md flex items-center justify-center gap-2 transition">
+                            Lanjut ke Unggah Berkas
+                            <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ==================== LANGKAH 3: UNGGAH BERKAS PERSYARATAN ==================== -->
+                <div id="form-step-3" class="p-5 sm:p-8 space-y-6 hidden fade-in">
+                    <div class="border-b border-stone-200 pb-3">
+                        <h3 class="text-lg font-bold text-pesantren-900 flex items-center gap-2">
+                            <span class="w-7 h-7 rounded-lg bg-pesantren-100 text-pesantren-700 flex items-center justify-center text-sm font-extrabold">3</span>
+                            Unggah Berkas Persyaratan
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-500 mt-1">Ketiga berkas wajib diunggah. Foto berukuran besar akan dikompres otomatis agar hemat kuota.</p>
+                    </div>
+
+                    <!-- Catatan Privasi -->
+                    <div class="bg-pesantren-50 border border-pesantren-200 rounded-xl p-3.5 flex items-start gap-3">
+                        <i data-lucide="lock" class="w-5 h-5 text-pesantren-700 shrink-0 mt-0.5"></i>
+                        <p class="text-xs sm:text-sm text-pesantren-900 font-medium">
+                            <strong>Jaminan Privasi:</strong> Berkas Anda hanya digunakan untuk keperluan pendaftaran dan hanya dapat diakses oleh panitia resmi PP. APIS Al Idrisy 2 Jember.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <!-- BERKAS 1: KARTU KELUARGA (KK) -->
+                        <div id="upload-card-kk" class="border-2 border-dashed border-stone-300 rounded-2xl p-4 flex flex-col justify-between bg-stone-50/50 hover:border-pesantren-500 transition"
+                             ondragover="handleDragOver(event, 'kk')" ondragleave="handleDragLeave(event, 'kk')" ondrop="handleDrop(event, 'kk')">
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-pesantren-100 text-pesantren-800">Wajib 1</span>
+                                    <span class="text-[11px] text-slate-500">JPG, PNG, PDF • Maks 2MB</span>
+                                </div>
+                                <h4 class="font-bold text-slate-800 text-base mb-1">1. Kartu Keluarga (KK)</h4>
+                                <p class="text-xs text-slate-500 mb-3">Pastikan tulisan NIK dan nama anggota keluarga terbaca jelas.</p>
+                            </div>
+
+                            <!-- Area Pratinjau KK -->
+                            <div id="preview-kk" class="hidden my-2 bg-white border border-stone-200 rounded-xl p-2.5 text-center"></div>
+
+                            <!-- Progress Bar KK -->
+                            <div id="progress-wrap-kk" class="hidden my-2">
+                                <div class="w-full bg-stone-200 rounded-full h-2">
+                                    <div id="progress-bar-kk" class="bg-pesantren-600 h-2 rounded-full transition-all" style="width: 0%"></div>
+                                </div>
+                                <p class="text-[11px] text-slate-500 mt-1 text-center">Memproses & mengompres berkas...</p>
+                            </div>
+
+                            <!-- Pesan Error KK -->
+                            <p id="err-file-kk" class="text-xs text-red-600 font-medium my-1 hidden"></p>
+
+                            <!-- Tombol Aksi KK -->
+                            <div id="actions-kk" class="mt-3 space-y-2">
+                                <input type="file" id="input-file-kk" accept="image/jpeg,image/png,application/pdf" class="hidden" onchange="handleFileSelect(event, 'kk')">
+                                <input type="file" id="input-cam-kk" accept="image/*" capture="environment" class="hidden" onchange="handleFileSelect(event, 'kk')">
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button type="button" onclick="document.getElementById('input-file-kk').click()" class="px-3 py-2.5 rounded-xl bg-white border border-stone-300 hover:bg-stone-100 text-slate-700 text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm">
+                                        <i data-lucide="folder-open" class="w-4 h-4 text-pesantren-600"></i> Pilih File
+                                    </button>
+                                    <button type="button" onclick="document.getElementById('input-cam-kk').click()" class="px-3 py-2.5 rounded-xl bg-pesantren-600 hover:bg-pesantren-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm">
+                                        <i data-lucide="camera" class="w-4 h-4"></i> Ambil Foto
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- BERKAS 2: AKTA KELAHIRAN -->
+                        <div id="upload-card-akta" class="border-2 border-dashed border-stone-300 rounded-2xl p-4 flex flex-col justify-between bg-stone-50/50 hover:border-pesantren-500 transition"
+                             ondragover="handleDragOver(event, 'akta')" ondragleave="handleDragLeave(event, 'akta')" ondrop="handleDrop(event, 'akta')">
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-pesantren-100 text-pesantren-800">Wajib 2</span>
+                                    <span class="text-[11px] text-slate-500">JPG, PNG, PDF • Maks 2MB</span>
+                                </div>
+                                <h4 class="font-bold text-slate-800 text-base mb-1">2. Akta Kelahiran</h4>
+                                <p class="text-xs text-slate-500 mb-3">Unggah scan atau foto utuh Akta Kelahiran calon santri.</p>
+                            </div>
+
+                            <!-- Area Pratinjau Akta -->
+                            <div id="preview-akta" class="hidden my-2 bg-white border border-stone-200 rounded-xl p-2.5 text-center"></div>
+
+                            <!-- Progress Bar Akta -->
+                            <div id="progress-wrap-akta" class="hidden my-2">
+                                <div class="w-full bg-stone-200 rounded-full h-2">
+                                    <div id="progress-bar-akta" class="bg-pesantren-600 h-2 rounded-full transition-all" style="width: 0%"></div>
+                                </div>
+                                <p class="text-[11px] text-slate-500 mt-1 text-center">Memproses & mengompres berkas...</p>
+                            </div>
+
+                            <!-- Pesan Error Akta -->
+                            <p id="err-file-akta" class="text-xs text-red-600 font-medium my-1 hidden"></p>
+
+                            <!-- Tombol Aksi Akta -->
+                            <div id="actions-akta" class="mt-3 space-y-2">
+                                <input type="file" id="input-file-akta" accept="image/jpeg,image/png,application/pdf" class="hidden" onchange="handleFileSelect(event, 'akta')">
+                                <input type="file" id="input-cam-akta" accept="image/*" capture="environment" class="hidden" onchange="handleFileSelect(event, 'akta')">
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button type="button" onclick="document.getElementById('input-file-akta').click()" class="px-3 py-2.5 rounded-xl bg-white border border-stone-300 hover:bg-stone-100 text-slate-700 text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm">
+                                        <i data-lucide="folder-open" class="w-4 h-4 text-pesantren-600"></i> Pilih File
+                                    </button>
+                                    <button type="button" onclick="document.getElementById('input-cam-akta').click()" class="px-3 py-2.5 rounded-xl bg-pesantren-600 hover:bg-pesantren-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm">
+                                        <i data-lucide="camera" class="w-4 h-4"></i> Ambil Foto
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- BERKAS 3: PAS FOTO 3X4 -->
+                        <div id="upload-card-foto" class="border-2 border-dashed border-stone-300 rounded-2xl p-4 flex flex-col justify-between bg-stone-50/50 hover:border-pesantren-500 transition"
+                             ondragover="handleDragOver(event, 'foto')" ondragleave="handleDragLeave(event, 'foto')" ondrop="handleDrop(event, 'foto')">
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800">Wajib 3 • 3x4</span>
+                                    <span class="text-[11px] text-slate-500">JPG, PNG • Maks 2MB</span>
+                                </div>
+                                <h4 class="font-bold text-slate-800 text-base mb-1">3. Pas Foto (3x4)</h4>
+                                <p class="text-xs text-slate-500 mb-3">Latar polos, berpakaian rapi/muslim. Tersedia fitur potong (crop) 3x4.</p>
+                            </div>
+
+                            <!-- Area Pratinjau Foto -->
+                            <div id="preview-foto" class="hidden my-2 bg-white border border-stone-200 rounded-xl p-2.5 text-center"></div>
+
+                            <!-- Progress Bar Foto -->
+                            <div id="progress-wrap-foto" class="hidden my-2">
+                                <div class="w-full bg-stone-200 rounded-full h-2">
+                                    <div id="progress-bar-foto" class="bg-pesantren-600 h-2 rounded-full transition-all" style="width: 0%"></div>
+                                </div>
+                                <p class="text-[11px] text-slate-500 mt-1 text-center">Memproses pas foto...</p>
+                            </div>
+
+                            <!-- Pesan Error Foto -->
+                            <p id="err-file-foto" class="text-xs text-red-600 font-medium my-1 hidden"></p>
+
+                            <!-- Tombol Aksi Foto -->
+                            <div id="actions-foto" class="mt-3 space-y-2">
+                                <input type="file" id="input-file-foto" accept="image/jpeg,image/png" class="hidden" onchange="handleFileSelect(event, 'foto')">
+                                <input type="file" id="input-cam-foto" accept="image/*" capture="user" class="hidden" onchange="handleFileSelect(event, 'foto')">
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button type="button" onclick="document.getElementById('input-file-foto').click()" class="px-3 py-2.5 rounded-xl bg-white border border-stone-300 hover:bg-stone-100 text-slate-700 text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm">
+                                        <i data-lucide="image" class="w-4 h-4 text-pesantren-600"></i> Pilih Foto
+                                    </button>
+                                    <button type="button" onclick="document.getElementById('input-cam-foto').click()" class="px-3 py-2.5 rounded-xl bg-pesantren-600 hover:bg-pesantren-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm">
+                                        <i data-lucide="camera" class="w-4 h-4"></i> Kamera
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 flex flex-col-reverse sm:flex-row justify-between gap-3 border-t border-stone-100">
+                        <button type="button" onclick="goToStep(2)" class="w-full sm:w-auto px-5 py-3.5 rounded-xl border border-stone-300 hover:bg-stone-100 text-slate-700 font-semibold text-base flex items-center justify-center gap-2 transition">
+                            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                            Kembali
+                        </button>
+                        <button type="button" onclick="nextStep(3)" class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-pesantren-600 hover:bg-pesantren-700 text-white font-bold text-base shadow-md flex items-center justify-center gap-2 transition">
+                            Lanjut ke Konfirmasi
+                            <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ==================== LANGKAH 4: PERNYATAAN & KONFIRMASI ==================== -->
+                <div id="form-step-4" class="p-5 sm:p-8 space-y-6 hidden fade-in">
+                    <div class="border-b border-stone-200 pb-3">
+                        <h3 class="text-lg font-bold text-pesantren-900 flex items-center gap-2">
+                            <span class="w-7 h-7 rounded-lg bg-pesantren-100 text-pesantren-700 flex items-center justify-center text-sm font-extrabold">4</span>
+                            Ringkasan & Pernyataan Pendaftaran
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-500 mt-1">Periksa kembali seluruh data dan berkas Anda sebelum mengirim formulir pendaftaran.</p>
+                    </div>
+
+                    <!-- Ringkasan Data -->
+                    <div class="space-y-4">
+                        <!-- Ringkasan 1: Calon Santri -->
+                        <div class="bg-stone-50 rounded-2xl p-4 sm:p-5 border border-stone-200">
+                            <div class="flex items-center justify-between border-b border-stone-200 pb-2.5 mb-3">
+                                <h4 class="font-bold text-pesantren-800 text-sm uppercase tracking-wide">A. Data Calon Santri</h4>
+                                <button type="button" onclick="goToStep(1)" class="text-xs font-bold text-pesantren-600 hover:text-pesantren-800 flex items-center gap-1">
+                                    <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Ubah
+                                </button>
+                            </div>
+                            <dl id="summary-santri" class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 text-sm"></dl>
+                        </div>
+
+                        <!-- Ringkasan 2: Orang Tua -->
+                        <div class="bg-stone-50 rounded-2xl p-4 sm:p-5 border border-stone-200">
+                            <div class="flex items-center justify-between border-b border-stone-200 pb-2.5 mb-3">
+                                <h4 class="font-bold text-pesantren-800 text-sm uppercase tracking-wide">B. Data Orang Tua / Wali</h4>
+                                <button type="button" onclick="goToStep(2)" class="text-xs font-bold text-pesantren-600 hover:text-pesantren-800 flex items-center gap-1">
+                                    <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Ubah
+                                </button>
+                            </div>
+                            <dl id="summary-ortu" class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 text-sm"></dl>
+                        </div>
+
+                        <!-- Ringkasan 3: Berkas -->
+                        <div class="bg-stone-50 rounded-2xl p-4 sm:p-5 border border-stone-200">
+                            <div class="flex items-center justify-between border-b border-stone-200 pb-2.5 mb-3">
+                                <h4 class="font-bold text-pesantren-800 text-sm uppercase tracking-wide">C. Berkas Persyaratan</h4>
+                                <button type="button" onclick="goToStep(3)" class="text-xs font-bold text-pesantren-600 hover:text-pesantren-800 flex items-center gap-1">
+                                    <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Ubah
+                                </button>
+                            </div>
+                            <div id="summary-berkas" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
+                        </div>
+                    </div>
+
+                    <!-- Pernyataan & Tanggal -->
+                    <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-5 space-y-4">
+                        <div class="flex items-center justify-between text-xs sm:text-sm font-semibold text-amber-900 border-b border-amber-200/80 pb-2">
+                            <span>Tempat & Tanggal Pendaftaran:</span>
+                            <span id="auto-tanggal-daftar" class="font-bold">Jember, 27 November 2026</span>
+                        </div>
+
+                        <label class="flex items-start gap-3 cursor-pointer select-none">
+                            <input type="checkbox" id="persetujuan_check" class="mt-1 w-5 h-5 rounded border-stone-300 text-pesantren-600 focus:ring-pesantren-500 shrink-0" required>
+                            <span class="text-sm sm:text-base text-slate-800 leading-relaxed font-medium">
+                                "Dengan ini mendaftarkan diri sebagai Santri <strong>PP. APIS Al Idrisy 2 Jember</strong> dan menyatakan sanggup mentaati semua peraturan dan tata tertib yang berlaku."
+                            </span>
+                        </label>
+
+                        <!-- Anti-Spam Captcha Sederhana -->
+                        <div class="pt-2 border-t border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div class="text-xs sm:text-sm text-slate-700 font-medium">
+                                Keamanan Anti-Spam: Berapa hasil dari <span id="captcha-question" class="font-extrabold text-pesantren-800 bg-white px-2 py-0.5 rounded border border-stone-300">4 + 3</span> ?
+                            </div>
+                            <input type="number" id="captcha-answer" placeholder="Jawaban" class="w-full sm:w-32 px-3 py-2 rounded-xl border border-stone-300 bg-white text-center font-bold focus:ring-2 focus:ring-pesantren-500 outline-none" required>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 flex flex-col-reverse sm:flex-row justify-between gap-3 border-t border-stone-100">
+                        <button type="button" onclick="goToStep(3)" class="w-full sm:w-auto px-5 py-3.5 rounded-xl border border-stone-300 hover:bg-stone-100 text-slate-700 font-semibold text-base flex items-center justify-center gap-2 transition">
+                            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                            Kembali
+                        </button>
+                        <button type="submit" id="btn-submit-ppsb" class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-pesantren-700 hover:bg-pesantren-800 text-white font-extrabold text-base shadow-lg flex items-center justify-center gap-2 transition">
+                            <i data-lucide="send" class="w-5 h-5"></i>
+                            Kirim Formulir Pendaftaran
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- 2. HALAMAN SUKSES & BUKTI PENDAFTARAN (PDF)               -->
+        <!-- ========================================================= -->
+        <section id="view-success" class="hidden fade-in space-y-6">
+            <!-- Kartu Konfirmasi Atas -->
+            <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-md border-t-4 border-pesantren-600 text-center no-print">
+                <div class="w-16 h-16 rounded-full bg-pesantren-100 text-pesantren-700 flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="check-circle-2" class="w-10 h-10"></i>
+                </div>
+                <span class="inline-block px-3 py-1 rounded-full bg-pesantren-50 text-pesantren-700 text-xs font-bold mb-2">
+                    Pendaftaran Berhasil & Tersinkronisasi
+                </span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Alhamdulillah, Data Telah Diterima!</h2>
+                <p class="text-sm sm:text-base text-slate-600 max-w-xl mx-auto mt-2">
+                    Simpan atau unduh Bukti Pendaftaran di bawah ini untuk ditunjukkan kepada panitia saat daftar ulang di pondok.
+                </p>
+
+                <!-- Kotak Nomor Pendaftaran -->
+                <div class="mt-5 inline-block bg-stone-50 border-2 border-pesantren-600/40 rounded-2xl px-6 py-4">
+                    <p class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Nomor Pendaftaran Anda</p>
+                    <p id="success-no-reg" class="text-xl sm:text-2xl font-extrabold text-pesantren-800 tracking-wide mt-1">0004/PPSB/APIS/XI/2026</p>
+                </div>
+
+                <!-- Tombol Aksi Utama -->
+                <div class="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+                    <button type="button" onclick="window.print()" class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-pesantren-700 hover:bg-pesantren-800 text-white font-bold text-sm sm:text-base shadow-md flex items-center justify-center gap-2 transition">
+                        <i data-lucide="printer" class="w-5 h-5"></i>
+                        Unduh Bukti Pendaftaran (PDF)
+                    </button>
+                    <a id="btn-wa-success" href="#" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm sm:text-base shadow-md flex items-center justify-center gap-2 transition">
+                        <i data-lucide="message-circle" class="w-5 h-5"></i>
+                        Kirim via WhatsApp
+                    </a>
+                    <button type="button" onclick="resetForNewRegistration()" class="w-full sm:w-auto px-5 py-3.5 rounded-xl border border-stone-300 hover:bg-stone-100 text-slate-700 font-semibold text-sm flex items-center justify-center gap-2 transition">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        Daftar Santri Lain
+                    </button>
+                </div>
+            </div>
+
+            <!-- PRATINJAU FORMULIR KERTAS RESMI (YANG DICETAK KE PDF) -->
+            <div class="bg-stone-200/70 p-3 sm:p-6 rounded-2xl border border-stone-300 overflow-x-auto">
+                <p class="text-xs font-semibold text-slate-600 mb-3 text-center no-print">Pratinjau Dokumen Resmi (Siap Cetak / Simpan sebagai PDF)</p>
+                
+                <div id="print-area" class="bg-white max-w-[210mm] mx-auto p-6 sm:p-10 shadow-lg border border-stone-300 text-slate-900 font-sans">
+                    <!-- KOP SURAT PESANTREN -->
+                    <div class="border-b-4 border-double border-slate-900 pb-3 mb-5 flex items-center justify-between gap-4">
+                        <div class="w-16 h-16 rounded-full border border-pesantren-800/30 p-1 flex items-center justify-center shrink-0 overflow-hidden bg-white">
+                            <img src="https://drive.google.com/thumbnail?id=159cDCjXrT7bl5BhBGXKYVGLFflelKgE4&sz=w256" 
+                                 alt="Logo PP. APIS Al Idrisy 2 Jember" 
+                                 class="w-full h-full object-contain"
+                                 onerror="this.onerror=null; this.src='https://lh3.googleusercontent.com/d/159cDCjXrT7bl5BhBGXKYVGLFflelKgE4=w256';">
+                        </div>
+                        <div class="text-center flex-1">
+                            <p class="text-xs font-bold tracking-widest uppercase text-pesantren-800">Panitia Penerimaan Santri Baru (PPSB)</p>
+                            <h1 class="text-xl sm:text-2xl font-extrabold uppercase tracking-tight text-slate-900">PP. APIS AL IDRISY 2 JEMBER</h1>
+                            <p class="text-xs text-slate-700 mt-0.5">Tahun Ajaran <span id="pdf-tahun-ajaran" class="font-bold">2027/2028</span> • Kabupaten Jember, Jawa Timur</p>
+                        </div>
+                        <div class="w-16 shrink-0 hidden sm:block"></div>
+                    </div>
+
+                    <!-- JUDUL & PAS FOTO 3X4 DI POJOK ATAS -->
+                    <div class="flex justify-between items-start gap-4 mb-5">
+                        <div class="flex-1 pt-2">
+                            <h2 class="text-lg font-extrabold underline uppercase tracking-wide">FORMULIR PENDAFTARAN</h2>
+                            <p class="text-sm font-bold mt-1">No. Pendaftaran : <span id="pdf-no-reg" class="font-mono text-base">0001/PPSB/APIS/XI/2026</span></p>
+                            <p class="text-xs text-slate-600 mt-1">Status Pendaftaran : <span id="pdf-status" class="font-bold uppercase">BARU</span></p>
+                        </div>
+                        <!-- Kotak Pas Foto 3x4 -->
+                        <div class="w-[27mm] h-[36mm] border border-slate-800 flex items-center justify-center overflow-hidden bg-stone-100 shrink-0">
+                            <img id="pdf-pas-foto" src="" alt="Pas Foto 3x4" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+
+                    <!-- DATA CALON SANTRI -->
+                    <div class="mb-4">
+                        <h3 class="text-xs font-extrabold uppercase bg-stone-200 px-2.5 py-1 border border-slate-400 mb-2">I. IDENTITAS CALON SANTRI</h3>
+                        <table class="w-full text-xs sm:text-sm border-collapse">
+                            <tbody>
+                                <tr>
+                                    <td class="py-1 w-44 font-semibold">1. Nama Lengkap</td>
+                                    <td class="py-1 w-4">:</td>
+                                    <td id="pdf-nama" class="py-1 font-bold uppercase"></td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1 font-semibold">2. Tempat, Tanggal Lahir</td>
+                                    <td class="py-1">:</td>
+                                    <td id="pdf-ttl" class="py-1"></td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1 font-semibold">3. Umur</td>
+                                    <td class="py-1">:</td>
+                                    <td id="pdf-umur" class="py-1"></td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1 font-semibold align-top">4. Alamat Rumah</td>
+                                    <td class="py-1 align-top">:</td>
+                                    <td id="pdf-alamat" class="py-1"></td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1 font-semibold">5. Sekolah Asal</td>
+                                    <td class="py-1">:</td>
+                                    <td id="pdf-sekolah" class="py-1"></td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1 font-semibold">6. Hobi</td>
+                                    <td class="py-1">:</td>
+                                    <td id="pdf-hobi" class="py-1"></td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1 font-semibold">7. No. Telp / HP (WA)</td>
+                                    <td class="py-1">:</td>
+                                    <td id="pdf-hp-santri" class="py-1"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- DATA ORANG TUA / WALI -->
+                    <div class="mb-4">
+                        <h3 class="text-xs font-extrabold uppercase bg-stone-200 px-2.5 py-1 border border-slate-400 mb-2">II. IDENTITAS ORANG TUA / WALI</h3>
+                        <table class="w-full text-xs sm:text-sm border-collapse">
+                            <tbody>
+                                <tr>
+                                    <td class="py-1 w-44 font-semibold">1. Nama Ayah</td>
+                                    <td class="py-1 w-4">:</td>
+                                    <td id="pdf-ayah" class="py-1 font-semibold"></td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1 font-semibold">2. Pekerjaan Ayah</td>
+                                    <td class="py-1">:</td>
+                                    <td id="pdf-kerja-ayah" class="py-1"></td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1 font-semibold">3. Nama Ibu</td>
+                                    <td class="py-1">:</td>
+                                    <td id="pdf-ibu" class="py-1 font-semibold"></td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1 font-semibold">4. Pekerjaan Ibu</td>
+                                    <td class="py-1">:</td>
+                                    <td id="pdf-kerja-ibu" class="py-1"></td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1 font-semibold">5. No. Telp / HP (WA)</td>
+                                    <td class="py-1">:</td>
+                                    <td id="pdf-hp-ortu" class="py-1 font-semibold"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- CHECKLIST BERKAS PERSYARATAN -->
+                    <div class="mb-4">
+                        <h3 class="text-xs font-extrabold uppercase bg-stone-200 px-2.5 py-1 border border-slate-400 mb-2">III. KELENGKAPAN BERKAS PERSYARATAN</h3>
+                        <div class="grid grid-cols-3 gap-2 text-xs border border-slate-300 p-2.5">
+                            <div class="flex items-center gap-2">
+                                <span class="inline-flex items-center justify-center w-4 h-4 border border-slate-800 font-bold text-pesantren-800">✓</span>
+                                <span>Fotokopi / Scan KK</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="inline-flex items-center justify-center w-4 h-4 border border-slate-800 font-bold text-pesantren-800">✓</span>
+                                <span>Akta Kelahiran</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="inline-flex items-center justify-center w-4 h-4 border border-slate-800 font-bold text-pesantren-800">✓</span>
+                                <span>Pas Foto 3x4</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PERNYATAAN -->
+                    <div class="mb-6 text-xs leading-relaxed border border-slate-300 p-3 bg-stone-50">
+                        <p class="font-bold mb-1">PERNYATAAN :</p>
+                        <p>"Dengan ini mendaftarkan diri sebagai Santri <strong>PP. APIS Al Idrisy 2 Jember</strong> dan menyatakan sanggup mentaati semua peraturan dan tata tertib yang berlaku."</p>
+                    </div>
+
+                    <!-- TANDA TANGAN 3 KOLOM -->
+                    <div class="text-xs">
+                        <p id="pdf-tanggal-ttd" class="text-right font-semibold mb-3">Jember, 27 November 2026</p>
+                        <div class="grid grid-cols-3 gap-4 text-center">
+                            <div>
+                                <p class="font-semibold">Petugas Pendaftar / Penerima,</p>
+                                <div class="h-16"></div>
+                                <p id="pdf-petugas-nama" class="font-bold underline">( ........................................ )</p>
+                            </div>
+                            <div>
+                                <p class="font-semibold">Orang Tua / Wali Santri,</p>
+                                <div class="h-16"></div>
+                                <p id="pdf-ttd-ortu" class="font-bold underline">( ........................................ )</p>
+                            </div>
+                            <div>
+                                <p class="font-semibold">Calon Santri,</p>
+                                <div class="h-16"></div>
+                                <p id="pdf-ttd-santri" class="font-bold underline">( ........................................ )</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- 3. PANEL ADMIN (LOGIN & DASHBOARD PETUGAS)                -->
+        <!-- ========================================================= -->
+        <section id="view-admin" class="hidden fade-in">
+            
+            <!-- FORM LOGIN ADMIN -->
+            <div id="admin-login-box" class="max-w-md mx-auto bg-white rounded-2xl shadow-md border border-stone-200 p-6 sm:p-8 mt-6">
+                <div class="text-center mb-6">
+                    <div class="w-14 h-14 rounded-2xl bg-pesantren-100 text-pesantren-800 flex items-center justify-center mx-auto mb-3">
+                        <i data-lucide="shield" class="w-7 h-7"></i>
+                    </div>
+                    <h2 class="text-xl font-extrabold text-slate-900">Login Panitia PPSB</h2>
+                    <p class="text-xs text-slate-500 mt-1">PP. APIS Al Idrisy 2 Jember • Akses Terbatas Petugas</p>
+                </div>
+
+                <form onsubmit="handleAdminLogin(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Username</label>
+                        <input type="text" id="admin-username" placeholder="Masukkan username" class="w-full px-4 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-pesantren-500 outline-none" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Password</label>
+                        <input type="password" id="admin-password" placeholder="Masukkan password" class="w-full px-4 py-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-pesantren-500 outline-none" required>
+                    </div>
+                    <p id="login-error-msg" class="text-xs text-red-600 font-semibold hidden"></p>
+                    <button type="submit" class="w-full py-3.5 rounded-xl bg-pesantren-700 hover:bg-pesantren-800 text-white font-bold shadow-md transition">
+                        Masuk ke Panel Panitia
+                    </button>
+                </form>
+                <div class="mt-4 pt-3 border-t border-stone-100 text-center">
+                    <p class="text-[11px] text-slate-400">Akses Terbatas • Khusus Panitia PPSB PP. APIS Al Idrisy 2 Jember</p>
+                </div>
+            </div>
+
+            <!-- DASHBOARD UTAMA ADMIN -->
+            <div id="admin-dashboard-box" class="hidden space-y-6">
+                <!-- Header Dashboard -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-stone-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-pesantren-100 text-pesantren-800">Panel Admin Aktif</span>
+                            <span class="text-xs text-slate-500">Petugas: <strong>Admin PPSB</strong></span>
+                        </div>
+                        <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1">Dashboard Pendaftaran Santri</h2>
+                    </div>
+
+                    <!-- Tombol Toolbar Admin -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <!-- Pengaturan Tahun Ajaran Aktif oleh Panitia -->
+                        <div class="flex items-center gap-1.5 bg-pesantren-50 border border-pesantren-300 px-3 py-1.5 rounded-xl">
+                            <span class="text-xs font-bold text-pesantren-900 whitespace-nowrap">TA Aktif:</span>
+                            <select id="admin-active-tahun-select" onchange="setActiveTahunAjaran(this.value)" class="bg-transparent text-xs sm:text-sm font-extrabold text-pesantren-800 outline-none cursor-pointer">
+                                <option value="2027/2028">2027/2028</option>
+                                <option value="2028/2029">2028/2029</option>
+                                <option value="2029/2030">2029/2030</option>
+                                <option value="2030/2031">2030/2031</option>
+                                <option value="2031/2032">2031/2032</option>
+                                <option value="2032/2033">2032/2033</option>
+                                <option value="2033/2034">2033/2034</option>
+                                <option value="2034/2035">2034/2035</option>
+                            </select>
+                        </div>
+                        <button type="button" onclick="openManualEntryModal()" class="px-3.5 py-2.5 rounded-xl bg-pesantren-600 hover:bg-pesantren-700 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm">
+                            <i data-lucide="user-plus" class="w-4 h-4"></i> Input Manual
+                        </button>
+                        <button type="button" onclick="exportToExcel()" class="px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm">
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Excel (.xlsx)
+                        </button>
+                        <button type="button" onclick="exportToCSV()" class="px-3.5 py-2.5 rounded-xl bg-white border border-stone-300 hover:bg-stone-100 text-slate-700 text-xs sm:text-sm font-bold flex items-center gap-1.5">
+                            <i data-lucide="file-text" class="w-4 h-4"></i> CSV
+                        </button>
+                        <button type="button" onclick="openGoogleSheetModal()" class="px-3.5 py-2.5 rounded-xl bg-amber-50 border border-amber-300 hover:bg-amber-100 text-amber-900 text-xs sm:text-sm font-bold flex items-center gap-1.5">
+                            <i data-lucide="refresh-cw" class="w-4 h-4 text-amber-600"></i> Google Sheet
+                        </button>
+                        <button type="button" onclick="handleAdminLogout()" class="px-3 py-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 text-xs sm:text-sm font-bold flex items-center gap-1">
+                            <i data-lucide="log-out" class="w-4 h-4"></i> Keluar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4 KARTU STATISTIK -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-500">Total Pendaftar</span>
+                            <span class="p-2 rounded-lg bg-pesantren-50 text-pesantren-700"><i data-lucide="users" class="w-4 h-4"></i></span>
+                        </div>
+                        <p id="stat-total" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">0</p>
+                        <p class="text-[11px] text-slate-400 mt-1">Tahun 2027 - 2035</p>
+                    </div>
+
+                    <div class="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-500">Pendaftar Hari Ini</span>
+                            <span class="p-2 rounded-lg bg-blue-50 text-blue-700"><i data-lucide="calendar-check" class="w-4 h-4"></i></span>
+                        </div>
+                        <p id="stat-today" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">0</p>
+                        <p class="text-[11px] text-slate-400 mt-1">27 Nov 2026</p>
+                    </div>
+
+                    <div class="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-500">Belum Terverifikasi</span>
+                            <span class="p-2 rounded-lg bg-amber-50 text-amber-700"><i data-lucide="clock" class="w-4 h-4"></i></span>
+                        </div>
+                        <p id="stat-unverified" class="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-2">0</p>
+                        <p class="text-[11px] text-slate-400 mt-1">Menunggu cek berkas</p>
+                    </div>
+
+                    <div class="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-500">Santri Diterima</span>
+                            <span class="p-2 rounded-lg bg-emerald-50 text-emerald-700"><i data-lucide="award" class="w-4 h-4"></i></span>
+                        </div>
+                        <p id="stat-accepted" class="text-2xl sm:text-3xl font-extrabold text-emerald-700 mt-2">0</p>
+                        <p class="text-[11px] text-slate-400 mt-1">Lulus verifikasi</p>
+                    </div>
+                </div>
+
+                <!-- GRAFIK PENDAFTAR PER HARI -->
+                <div class="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-800">Grafik Pendaftar 7 Hari Terakhir</h3>
+                            <p class="text-xs text-slate-500">Statistik harian masuknya formulir online & offline</p>
+                        </div>
+                        <span class="text-xs font-semibold text-pesantren-700 bg-pesantren-50 px-2.5 py-1 rounded-lg">Real-time</span>
+                    </div>
+                    <div id="daily-chart-container" class="h-40 flex items-end justify-between gap-2 sm:gap-4 pt-4 px-2 border-b border-stone-200"></div>
+                </div>
+
+                <!-- TABEL DATA PENDAFTAR + PENCARIAN & FILTER -->
+                <div class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+                    <!-- Filter Bar -->
+                    <div class="p-4 sm:p-5 border-b border-stone-200 grid grid-cols-1 sm:grid-cols-12 gap-3 bg-stone-50/70">
+                        <div class="sm:col-span-4 relative">
+                            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3"></i>
+                            <input type="text" id="admin-search" oninput="renderAdminTable()" placeholder="Cari nama, no. pendaftaran, sekolah..." class="w-full pl-10 pr-4 py-2 rounded-xl border border-stone-300 bg-white text-sm focus:ring-2 focus:ring-pesantren-500 outline-none">
+                        </div>
+                        <div class="sm:col-span-3">
+                            <select id="admin-filter-tahun" onchange="onAdminTahunChange()" class="w-full px-3 py-2 rounded-xl border border-stone-300 bg-white text-sm font-semibold text-pesantren-900 focus:ring-2 focus:ring-pesantren-500 outline-none">
+                                <option value="">Semua Tahun Ajaran</option>
+                                <option value="2027/2028">TA 2027/2028</option>
+                                <option value="2028/2029">TA 2028/2029</option>
+                                <option value="2029/2030">TA 2029/2030</option>
+                                <option value="2030/2031">TA 2030/2031</option>
+                                <option value="2031/2032">TA 2031/2032</option>
+                                <option value="2032/2033">TA 2032/2033</option>
+                                <option value="2033/2034">TA 2033/2034</option>
+                                <option value="2034/2035">TA 2034/2035</option>
+                            </select>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <input type="date" id="admin-filter-date" onchange="renderAdminTable()" class="w-full px-3 py-2 rounded-xl border border-stone-300 bg-white text-sm focus:ring-2 focus:ring-pesantren-500 outline-none">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <select id="admin-filter-status" onchange="renderAdminTable()" class="w-full px-3 py-2 rounded-xl border border-stone-300 bg-white text-sm focus:ring-2 focus:ring-pesantren-500 outline-none">
+                                <option value="">Semua Status</option>
+                                <option value="Baru">Baru</option>
+                                <option value="Berkas Lengkap">Berkas Lengkap</option>
+                                <option value="Terverifikasi">Terverifikasi</option>
+                                <option value="Diterima">Diterima</option>
+                            </select>
+                        </div>
+                        <div class="sm:col-span-1">
+                            <button type="button" onclick="resetAdminFilters()" title="Reset Filter" class="w-full py-2 rounded-xl border border-stone-300 bg-white hover:bg-stone-100 text-slate-600 flex items-center justify-center">
+                                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tabel Responsif -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-stone-100 text-slate-600 text-xs uppercase tracking-wider border-b border-stone-200">
+                                    <th class="py-3.5 px-4 font-bold">No. Pendaftaran</th>
+                                    <th class="py-3.5 px-4 font-bold">Calon Santri</th>
+                                    <th class="py-3.5 px-4 font-bold">Orang Tua & WA</th>
+                                    <th class="py-3.5 px-4 font-bold">Berkas</th>
+                                    <th class="py-3.5 px-4 font-bold">Status</th>
+                                    <th class="py-3.5 px-4 font-bold text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-table-body" class="divide-y divide-stone-200 text-sm"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="p-4 border-t border-stone-200 flex flex-col sm:flex-row items-center justify-between gap-3 bg-stone-50/50 text-xs text-slate-600">
+                        <p id="pagination-info">Menampilkan 0 - 0 dari 0 pendaftar</p>
+                        <div id="pagination-controls" class="flex items-center gap-1.5"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ================= FOOTER ================= -->
+    <footer class="bg-white border-t border-stone-200 py-5 mt-10 no-print">
+        <div class="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
+            <p class="font-semibold text-slate-700">PP. APIS Al Idrisy 2 Jember • Sistem Pendaftaran Santri Baru (PPSB)</p>
+            <p>Tahun 2027 - 2035 • Sinkronisasi Otomatis Google Sheet</p>
+        </div>
+    </footer>
+
+    <!-- ========================================================= -->
+    <!-- MODAL 1: CROPPER PAS FOTO 3X4                             -->
+    <!-- ========================================================= -->
+    <div id="modal-cropper" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
+            <div class="p-4 border-b border-stone-200 flex items-center justify-between">
+                <h3 class="font-bold text-slate-900">Sesuaikan Pas Foto (Rasio 3x4)</h3>
+                <button type="button" onclick="closeCropperModal()" class="text-slate-400 hover:text-slate-700"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="p-5 flex flex-col items-center bg-stone-100">
+                <p class="text-xs text-slate-600 mb-3 text-center">Geser foto atau atur perbesaran agar wajah berada di tengah bingkai 3x4.</p>
+                <div class="relative overflow-hidden border-2 border-pesantren-600 shadow-md bg-white" style="width: 210px; height: 280px;">
+                    <canvas id="crop-canvas" width="300" height="400" class="w-full h-full cursor-move touch-none"></canvas>
+                </div>
+                <div class="w-full mt-4 flex items-center gap-3 px-2">
+                    <i data-lucide="zoom-out" class="w-4 h-4 text-slate-500"></i>
+                    <input type="range" id="crop-zoom" min="0.5" max="2.5" step="0.05" value="1" oninput="drawCropCanvas()" class="w-full accent-pesantren-600">
+                    <i data-lucide="zoom-in" class="w-4 h-4 text-slate-500"></i>
+                </div>
+            </div>
+            <div class="p-4 border-t border-stone-200 flex justify-end gap-2">
+                <button type="button" onclick="closeCropperModal()" class="px-4 py-2 rounded-xl border border-stone-300 text-sm font-semibold text-slate-700">Batal</button>
+                <button type="button" onclick="saveCroppedPhoto()" class="px-5 py-2 rounded-xl bg-pesantren-600 hover:bg-pesantren-700 text-white text-sm font-bold">Simpan Pas Foto</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- MODAL 2: DETAIL & VERIFIKASI PENDAFTAR (ADMIN)            -->
+    <!-- ========================================================= -->
+    <div id="modal-admin-detail" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-3 sm:p-5 overflow-y-auto no-print">
+        <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-auto">
+            <!-- Header Modal -->
+            <div class="p-4 sm:p-5 border-b border-stone-200 flex items-center justify-between bg-pesantren-900 text-white">
+                <div>
+                    <p id="detail-no-reg" class="text-xs font-mono text-emas-400 font-bold">0001/PPSB/APIS/XI/2026</p>
+                    <h3 id="detail-nama-header" class="text-lg font-extrabold">Detail Calon Santri</h3>
+                </div>
+                <button type="button" onclick="closeDetailModal()" class="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+
+            <!-- Body Modal -->
+            <div class="p-5 sm:p-6 overflow-y-auto space-y-6 flex-1">
+                <!-- Kontrol Status & Petugas Penerima -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-stone-50 p-4 rounded-xl border border-stone-200">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Status Pendaftaran</label>
+                        <select id="detail-status-select" onchange="updateApplicantField('status', this.value)" class="w-full px-3 py-2 rounded-lg border border-stone-300 bg-white text-sm font-bold text-pesantren-800">
+                            <option value="Baru">Baru</option>
+                            <option value="Berkas Lengkap">Berkas Lengkap</option>
+                            <option value="Terverifikasi">Terverifikasi</option>
+                            <option value="Diterima">Diterima</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Nama Petugas Penerima</label>
+                        <input type="text" id="detail-petugas-input" onchange="updateApplicantField('petugas_penerima', this.value)" placeholder="Isi nama panitia..." class="w-full px-3 py-2 rounded-lg border border-stone-300 bg-white text-sm">
+                    </div>
+                    <div class="flex items-end gap-2">
+                        <button type="button" onclick="downloadApplicantZip()" class="w-full py-2 px-3 rounded-lg bg-pesantren-700 hover:bg-pesantren-800 text-white text-xs font-bold flex items-center justify-center gap-1.5">
+                            <i data-lucide="archive" class="w-4 h-4"></i> Unduh Semua Berkas (ZIP)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Informasi Biodata -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 text-sm">
+                    <div class="border border-stone-200 rounded-xl p-4 space-y-2">
+                        <h4 class="font-bold text-pesantren-800 border-b border-stone-100 pb-1.5">Data Calon Santri</h4>
+                        <p><span class="text-slate-500">Tahun Ajaran:</span> <strong id="det-tahun-ajaran" class="text-pesantren-800"></strong></p>
+                        <p><span class="text-slate-500">Nama Lengkap:</span> <strong id="det-nama"></strong></p>
+                        <p><span class="text-slate-500">TTL / Umur:</span> <span id="det-ttl"></span></p>
+                        <p><span class="text-slate-500">Alamat:</span> <span id="det-alamat"></span></p>
+                        <p><span class="text-slate-500">Sekolah Asal:</span> <span id="det-sekolah"></span></p>
+                        <p><span class="text-slate-500">Hobi:</span> <span id="det-hobi"></span></p>
+                        <p><span class="text-slate-500">No. HP Santri:</span> <span id="det-hp-santri"></span></p>
+                    </div>
+
+                    <div class="border border-stone-200 rounded-xl p-4 space-y-2">
+                        <h4 class="font-bold text-pesantren-800 border-b border-stone-100 pb-1.5">Data Orang Tua / Wali</h4>
+                        <p><span class="text-slate-500">Nama Ayah:</span> <strong id="det-ayah"></strong> (<span id="det-kerja-ayah"></span>)</p>
+                        <p><span class="text-slate-500">Nama Ibu:</span> <strong id="det-ibu"></strong> (<span id="det-kerja-ibu"></span>)</p>
+                        <p><span class="text-slate-500">No. WA Ortu:</span> <strong id="det-hp-ortu" class="text-pesantren-700"></strong></p>
+                        <p><span class="text-slate-500">Tgl Daftar:</span> <span id="det-tgl-daftar"></span></p>
+                        <div class="pt-2">
+                            <span class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg">
+                                <i data-lucide="check-square" class="w-3.5 h-3.5"></i> Pernyataan Tata Tertib Disetujui
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Verifikasi 3 Berkas -->
+                <div>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                        <h4 class="font-bold text-slate-900">Verifikasi Berkas Persyaratan</h4>
+                        <a id="btn-wa-revision" href="#" target="_blank" rel="noopener noreferrer" class="hidden px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold flex items-center gap-1.5 w-fit">
+                            <i data-lucide="message-circle" class="w-4 h-4"></i> Kirim Catatan Perbaikan via WA Ortu
+                        </a>
+                    </div>
+
+                    <div id="detail-berkas-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+                </div>
+            </div>
+
+            <!-- Footer Modal -->
+            <div class="p-4 border-t border-stone-200 bg-stone-50 flex flex-wrap items-center justify-between gap-2">
+                <button type="button" onclick="openEditApplicantModal()" class="px-4 py-2 rounded-xl border border-stone-300 bg-white hover:bg-stone-100 text-slate-700 text-xs font-bold flex items-center gap-1.5">
+                    <i data-lucide="edit" class="w-4 h-4"></i> Edit Data & Ganti Berkas
+                </button>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="printApplicantFromAdmin()" class="px-4 py-2 rounded-xl bg-pesantren-600 hover:bg-pesantren-700 text-white text-xs font-bold flex items-center gap-1.5">
+                        <i data-lucide="printer" class="w-4 h-4"></i> Cetak Formulir / PDF
+                    </button>
+                    <button type="button" onclick="closeDetailModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-white text-xs font-bold">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- MODAL 3: ZOOM PRATINJAU BERKAS                            -->
+    <!-- ========================================================= -->
+    <div id="modal-zoom" class="fixed inset-0 bg-black/85 z-50 hidden flex items-center justify-center p-4 no-print" onclick="this.classList.add('hidden')">
+        <div class="max-w-3xl w-full bg-white rounded-2xl overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
+            <div class="p-3.5 border-b border-stone-200 flex items-center justify-between">
+                <h4 id="zoom-title" class="font-bold text-sm text-slate-800">Pratinjau Berkas</h4>
+                <button type="button" onclick="document.getElementById('modal-zoom').classList.add('hidden')" class="text-slate-500 hover:text-slate-800"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div id="zoom-content" class="p-4 bg-stone-900 flex items-center justify-center max-h-[78vh] overflow-auto"></div>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- MODAL 4: KONFIRMASI HAPUS (PENGGANTI window.confirm)      -->
+    <!-- ========================================================= -->
+    <div id="modal-confirm-delete" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center">
+            <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-3">
+                <i data-lucide="trash-2" class="w-6 h-6"></i>
+            </div>
+            <h3 class="font-bold text-lg text-slate-900">Hapus Data Pendaftar?</h3>
+            <p id="delete-confirm-text" class="text-xs sm:text-sm text-slate-600 mt-1">Data dan seluruh berkas pendaftar ini akan dihapus permanen.</p>
+            <div class="mt-5 grid grid-cols-2 gap-3">
+                <button type="button" onclick="closeDeleteModal()" class="py-2.5 rounded-xl border border-stone-300 text-sm font-semibold text-slate-700">Batal</button>
+                <button type="button" id="btn-confirm-delete-exec" class="py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-bold">Ya, Hapus</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- MODAL 5: INPUT MANUAL / EDIT DATA PENDAFTAR (ADMIN)       -->
+    <!-- ========================================================= -->
+    <div id="modal-manual-form" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-3 sm:p-5 overflow-y-auto no-print">
+        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden my-auto">
+            <div class="p-4 border-b border-stone-200 flex items-center justify-between bg-stone-50">
+                <h3 id="manual-modal-title" class="font-bold text-slate-900">Tambah Pendaftar Manual (Offline)</h3>
+                <button type="button" onclick="closeManualModal()" class="text-slate-500 hover:text-slate-800"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <form id="admin-manual-form" onsubmit="saveManualApplicant(event)" class="p-5 overflow-y-auto space-y-4 text-sm">
+                <input type="hidden" id="manual-id">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="sm:col-span-2">
+                        <label class="block font-semibold mb-1">Tahun Ajaran *</label>
+                        <select id="m-tahun-ajaran" class="w-full px-3 py-2 rounded-xl border border-stone-300 bg-white font-semibold" required>
+                            <option value="2027/2028">Tahun Ajaran 2027 / 2028</option>
+                            <option value="2028/2029">Tahun Ajaran 2028 / 2029</option>
+                            <option value="2029/2030">Tahun Ajaran 2029 / 2030</option>
+                            <option value="2030/2031">Tahun Ajaran 2030 / 2031</option>
+                            <option value="2031/2032">Tahun Ajaran 2031 / 2032</option>
+                            <option value="2032/2033">Tahun Ajaran 2032 / 2033</option>
+                            <option value="2033/2034">Tahun Ajaran 2033 / 2034</option>
+                            <option value="2034/2035">Tahun Ajaran 2034 / 2035</option>
+                        </select>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block font-semibold mb-1">Nama Lengkap Calon Santri *</label>
+                        <input type="text" id="m-nama" class="w-full px-3 py-2 rounded-xl border border-stone-300" required>
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Tempat Lahir *</label>
+                        <input type="text" id="m-tempat" class="w-full px-3 py-2 rounded-xl border border-stone-300" required>
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Tanggal Lahir *</label>
+                        <input type="date" id="m-tgl-lahir" class="w-full px-3 py-2 rounded-xl border border-stone-300" required>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block font-semibold mb-1">Alamat Rumah *</label>
+                        <textarea id="m-alamat" rows="2" class="w-full px-3 py-2 rounded-xl border border-stone-300" required></textarea>
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Sekolah Asal *</label>
+                        <input type="text" id="m-sekolah" class="w-full px-3 py-2 rounded-xl border border-stone-300" required>
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Hobi</label>
+                        <input type="text" id="m-hobi" class="w-full px-3 py-2 rounded-xl border border-stone-300">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">No. HP Santri (WA) *</label>
+                        <input type="tel" id="m-hp-santri" class="w-full px-3 py-2 rounded-xl border border-stone-300" required>
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">No. HP Ortu (WA) *</label>
+                        <input type="tel" id="m-hp-ortu" class="w-full px-3 py-2 rounded-xl border border-stone-300" required>
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Nama Ayah *</label>
+                        <input type="text" id="m-ayah" class="w-full px-3 py-2 rounded-xl border border-stone-300" required>
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Pekerjaan Ayah</label>
+                        <input type="text" id="m-kerja-ayah" class="w-full px-3 py-2 rounded-xl border border-stone-300">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Nama Ibu *</label>
+                        <input type="text" id="m-ibu" class="w-full px-3 py-2 rounded-xl border border-stone-300" required>
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Pekerjaan Ibu</label>
+                        <input type="text" id="m-kerja-ibu" class="w-full px-3 py-2 rounded-xl border border-stone-300">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Petugas Penerima</label>
+                        <input type="text" id="m-petugas" placeholder="Nama panitia" class="w-full px-3 py-2 rounded-xl border border-stone-300">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Status</label>
+                        <select id="m-status" class="w-full px-3 py-2 rounded-xl border border-stone-300">
+                            <option value="Baru">Baru</option>
+                            <option value="Berkas Lengkap">Berkas Lengkap</option>
+                            <option value="Terverifikasi">Terverifikasi</option>
+                            <option value="Diterima">Diterima</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Unggah / Ganti Berkas oleh Petugas -->
+                <div class="border-t border-stone-200 pt-3">
+                    <p class="font-bold text-xs uppercase text-slate-600 mb-2">Unggah / Ganti Berkas (Opsional saat edit)</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                        <div>
+                            <label class="block font-semibold mb-1">Kartu Keluarga</label>
+                            <input type="file" id="m-file-kk" accept="image/*,application/pdf" class="w-full text-xs">
+                        </div>
+                        <div>
+                            <label class="block font-semibold mb-1">Akta Kelahiran</label>
+                            <input type="file" id="m-file-akta" accept="image/*,application/pdf" class="w-full text-xs">
+                        </div>
+                        <div>
+                            <label class="block font-semibold mb-1">Pas Foto 3x4</label>
+                            <input type="file" id="m-file-foto" accept="image/*" class="w-full text-xs">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-3 border-t border-stone-200 flex justify-end gap-2">
+                    <button type="button" onclick="closeManualModal()" class="px-4 py-2 rounded-xl border border-stone-300 font-semibold">Batal</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-pesantren-700 hover:bg-pesantren-800 text-white font-bold">Simpan Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- MODAL 6: KONFIGURASI GOOGLE SHEET & DOKUMENTASI TEKNIS   -->
+    <!-- ========================================================= -->
+    <div id="modal-gsheet" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-3 sm:p-5 overflow-y-auto no-print">
+        <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden my-auto">
+            <div class="p-4 border-b border-stone-200 flex items-center justify-between bg-amber-50">
+                <h3 class="font-bold text-amber-950 flex items-center gap-2">
+                    <i data-lucide="sheet" class="w-5 h-5 text-emerald-700"></i>
+                    Sinkronisasi Otomatis Google Sheet & Panduan Sistem
+                </h3>
+                <button type="button" onclick="document.getElementById('modal-gsheet').classList.add('hidden')" class="text-slate-500 hover:text-slate-800"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="p-5 overflow-y-auto space-y-5 text-xs sm:text-sm">
+                <!-- Form URL Webhook -->
+                <div class="bg-stone-50 p-4 rounded-xl border border-stone-200 space-y-3">
+                    <label class="block font-bold text-slate-800">URL Web App Google Apps Script (Sinkron Otomatis):</label>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <input type="url" id="gsheet-webhook-url" placeholder="https://script.google.com/macros/s/AKfycb.../exec" class="flex-1 px-3.5 py-2 rounded-xl border border-stone-300 bg-white text-xs sm:text-sm">
+                        <button type="button" onclick="saveGSheetWebhook()" class="px-4 py-2 rounded-xl bg-pesantren-700 text-white font-bold shrink-0">Simpan URL</button>
+                        <button type="button" onclick="syncAllToGoogleSheet()" class="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold shrink-0">Sinkronkan Sekarang</button>
+                    </div>
+                    <p class="text-xs text-slate-500">Setiap pendaftar baru atau perubahan status di panel admin akan otomatis dikirim ke Google Sheet Anda.</p>
+                </div>
+
+                <!-- Kode Google Apps Script -->
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <h4 class="font-bold text-slate-800">1. Kode Google Apps Script (Tempel di Extensions &gt; Apps Script pada Google Sheet):</h4>
+                        <button type="button" onclick="copyAppsScriptCode()" class="text-xs font-bold text-pesantren-700 hover:underline flex items-center gap-1">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i> Salin Kode
+                        </button>
+                    </div>
+                    <pre id="apps-script-snippet" class="bg-slate-900 text-emerald-300 p-3.5 rounded-xl overflow-x-auto text-[11px] leading-relaxed font-mono">function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = JSON.parse(e.postData.contents);
+  
+  // Buat header otomatis jika baris masih kosong
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow([
+      "No Pendaftaran", "Tanggal Daftar", "Nama Lengkap", "Tempat Lahir", 
+      "Tanggal Lahir", "Umur", "Alamat", "Sekolah Asal", "Hobi", 
+      "No HP Santri", "Nama Ayah", "Pekerjaan Ayah", "Nama Ibu", 
+      "Pekerjaan Ibu", "No HP Ortu", "Status KK", "Status Akta", 
+      "Status Foto", "Status Pendaftaran", "Petugas Penerima"
+    ]);
+  }
+  
+  sheet.appendRow([
+    data.no_pendaftaran, data.tanggal_daftar, data.nama_lengkap, data.tempat_lahir,
+    data.tanggal_lahir, data.umur, data.alamat_rumah, data.sekolah_asal, data.hobi,
+    data.no_hp_santri, data.nama_ayah, data.pekerjaan_ayah, data.nama_ibu,
+    data.pekerjaan_ibu, data.no_hp_ortu, data.status_kk, data.status_akta,
+    data.status_foto, data.status, data.petugas_penerima
+  ]);
+  
+  return ContentService.createTextOutput(JSON.stringify({status: "success"}))
+    .setMimeType(ContentService.MimeType.JSON);
+}</pre>
+                </div>
+
+                <!-- Skema Database & Arsitektur Produksi -->
+                <div class="border-t border-stone-200 pt-4 space-y-2 text-xs text-slate-600">
+                    <h4 class="font-bold text-slate-800 text-sm">2. Arsitektur Database & Keamanan Berkas (Produksi):</h4>
+                    <p>Untuk deployment server penuh (Node.js/Express + SQLite/PostgreSQL atau Laravel + MySQL):</p>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li><strong>Tabel <code>pendaftar</code></strong>: <code>id</code>, <code>no_pendaftaran (UNIQUE)</code>, <code>nama_lengkap</code>, <code>tempat_lahir</code>, <code>tanggal_lahir</code>, <code>umur</code>, <code>alamat_rumah</code>, <code>sekolah_asal</code>, <code>hobi</code>, <code>no_hp_santri</code>, <code>status</code>, <code>petugas_penerima</code>, <code>created_at</code>.</li>
+                        <li><strong>Tabel <code>orang_tua</code></strong>: <code>id</code>, <code>pendaftar_id (FK)</code>, <code>nama_ayah</code>, <code>pekerjaan_ayah</code>, <code>nama_ibu</code>, <code>pekerjaan_ibu</code>, <code>no_hp_ortu</code>.</li>
+                        <li><strong>Tabel <code>berkas</code></strong>: <code>id</code>, <code>pendaftar_id (FK)</code>, <code>jenis_berkas (kk/akta/foto)</code>, <code>uuid_filename</code>, <code>mime_type</code>, <code>status_verifikasi</code>, <code>catatan</code>.</li>
+                        <li><strong>Tabel <code>admin</code></strong>: <code>id</code>, <code>username</code>, <code>password_hash (bcrypt/SHA-256)</code>.</li>
+                        <li><strong>Keamanan File</strong>: Simpan file di direktori privat <code>/storage/private_docs/</code> (di luar <code>public/</code>) dengan nama UUID acak dan validasi magic-bytes MIME.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- LOGIKA JAVASCRIPT LENGKAP                                 -->
+    <!-- ========================================================= -->
+    <script>
+        // ==========================================
+        // 1. KONFIGURASI & STATE APLIKASI
+        // ==========================================
+        const ADMIN_USER = "admin";
+        // Hash SHA-256 dari "apis1828"
+        const ADMIN_PASS_HASH = "e2b79862d739f4c493e0c250e5c8f681492f01600c5b43c192b1a8a31c97b3f5"; 
+
+        let currentStep = 1;
+        let isAdminLoggedIn = false;
+        let currentPage = 1;
+        const itemsPerPage = 5;
+        let activeDetailId = null;
+        let captchaExpected = 7;
+
+        // State berkas sementara pada formulir publik
+        let uploadedFiles = {
+            kk: null,   // { name, type, dataUrl, size }
+            akta: null,
+            foto: null
+        };
+
+        // State Cropper Pas Foto
+        let cropState = {
+            img: null,
+            offsetX: 0,
+            offsetY: 0,
+            isDragging: false,
+            startX: 0,
+            startY: 0
+        };
+
+        // ==========================================
+        // 2. DATA SEED (3 PENDAFTAR FIKTIF AWAL)
+        // ==========================================
+        function createPlaceholderDocSVG(title, subtitle, bgColor) {
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="400" viewBox="0 0 300 400">
+                <rect width="300" height="400" fill="${bgColor}"/>
+                <rect x="16" y="16" width="268" height="368" rx="12" fill="none" stroke="#ffffff" stroke-opacity="0.4" stroke-width="2"/>
+                <text x="150" y="175" font-family="sans-serif" font-size="18" font-weight="bold" fill="#ffffff" text-anchor="middle">${title}</text>
+                <text x="150" y="205" font-family="sans-serif" font-size="13" fill="#f0fdf4" text-anchor="middle">${subtitle}</text>
+                <text x="150" y="245" font-family="sans-serif" font-size="11" fill="#fde68a" text-anchor="middle">PP. APIS Al Idrisy 2 Jember</text>
+            </svg>`;
+            return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+        }
+
+        const SEED_APPLICANTS = [
+            {
+                id: "seed-1",
+                no_pendaftaran: "0001/PPSB/APIS/XI/2026",
+                tahun_ajaran: "2027/2028",
+                nama_lengkap: "Muhammad Zidan Al-Farizi",
+                tempat_lahir: "Jember",
+                tanggal_lahir: "2014-05-12",
+                umur: "12 Tahun",
+                alamat_rumah: "Jl. Raya Ambulu No. 45, Ds. Sabrang, Kec. Ambulu, Kab. Jember",
+                sekolah_asal: "SDN Sabrang 01 Ambulu",
+                hobi: "Membaca Kitab & Kaligrafi",
+                no_hp_santri: "081234567801",
+                nama_ayah: "H. Abdul Rahman",
+                pekerjaan_ayah: "Wiraswasta",
+                nama_ibu: "Siti Aminah",
+                pekerjaan_ibu: "Guru Mengaji",
+                no_hp_ortu: "081234567801",
+                tanggal_daftar: "Jember, 25 November 2026",
+                iso_date: "2026-11-25",
+                status: "Diterima",
+                petugas_penerima: "Ust. Ahmad Fauzi",
+                berkas: {
+                    kk: { name: "KK_Zidan_AlFarizi.png", type: "image/png", dataUrl: createPlaceholderDocSVG("KARTU KELUARGA", "An. Muhammad Zidan", "#166534"), status: "Sesuai", catatan: "" },
+                    akta: { name: "Akta_Zidan.png", type: "image/png", dataUrl: createPlaceholderDocSVG("AKTA KELAHIRAN", "No. 3509-LT-2014", "#15803d"), status: "Sesuai", catatan: "" },
+                    foto: { name: "PasFoto_Zidan_3x4.png", type: "image/png", dataUrl: createPlaceholderDocSVG("PAS FOTO 3x4", "M. Zidan Al-Farizi", "#b45309"), status: "Sesuai", catatan: "" }
+                }
+            },
+            {
+                id: "seed-2",
+                no_pendaftaran: "0002/PPSB/APIS/XI/2026",
+                tahun_ajaran: "2027/2028",
+                nama_lengkap: "Aisyah Humaira Azzahra",
+                tempat_lahir: "Lumajang",
+                tanggal_lahir: "2014-08-20",
+                umur: "12 Tahun",
+                alamat_rumah: "Dusun Krajan RT 02 RW 04, Kec. Tanggul, Kab. Jember",
+                sekolah_asal: "MI Nurul Islam Tanggul",
+                hobi: "Tahfidz Al-Qur'an",
+                no_hp_santri: "085712349902",
+                nama_ayah: "Mochammad Ilham",
+                pekerjaan_ayah: "Petani",
+                nama_ibu: "Nurul Hidayah",
+                pekerjaan_ibu: "Ibu Rumah Tangga",
+                no_hp_ortu: "085712349902",
+                tanggal_daftar: "Jember, 26 November 2026",
+                iso_date: "2026-11-26",
+                status: "Terverifikasi",
+                petugas_penerima: "Ustadzah Fatimah",
+                berkas: {
+                    kk: { name: "KK_Aisyah.png", type: "image/png", dataUrl: createPlaceholderDocSVG("KARTU KELUARGA", "An. Aisyah Humaira", "#166534"), status: "Sesuai", catatan: "" },
+                    akta: { name: "Akta_Aisyah.png", type: "image/png", dataUrl: createPlaceholderDocSVG("AKTA KELAHIRAN", "No. 3508-LT-2014", "#15803d"), status: "Sesuai", catatan: "" },
+                    foto: { name: "PasFoto_Aisyah_3x4.png", type: "image/png", dataUrl: createPlaceholderDocSVG("PAS FOTO 3x4", "Aisyah Humaira", "#0f766e"), status: "Sesuai", catatan: "" }
+                }
+            },
+            {
+                id: "seed-3",
+                no_pendaftaran: "0003/PPSB/APIS/XI/2026",
+                tahun_ajaran: "2027/2028",
+                nama_lengkap: "Ahmad Daniyal Hakim",
+                tempat_lahir: "Banyuwangi",
+                tanggal_lahir: "2015-01-10",
+                umur: "11 Tahun",
+                alamat_rumah: "Perum Gunung Batu Blok C-12, Sumbersari, Jember",
+                sekolah_asal: "SD Al-Furqon Jember",
+                hobi: "Hadrah & Sepak Bola",
+                no_hp_santri: "082198765432",
+                nama_ayah: "Bambang Supriyadi",
+                pekerjaan_ayah: "Pegawai Swasta",
+                nama_ibu: "Rina Marlina",
+                pekerjaan_ibu: "Pedagang",
+                no_hp_ortu: "082198765432",
+                tanggal_daftar: "Jember, 27 November 2026",
+                iso_date: "2026-11-27",
+                status: "Baru",
+                petugas_penerima: "",
+                berkas: {
+                    kk: { name: "KK_Daniyal.png", type: "image/png", dataUrl: createPlaceholderDocSVG("KARTU KELUARGA", "An. Ahmad Daniyal", "#166534"), status: "Belum Dicek", catatan: "" },
+                    akta: { name: "Akta_Daniyal.png", type: "image/png", dataUrl: createPlaceholderDocSVG("AKTA KELAHIRAN", "No. 3510-LT-2015", "#15803d"), status: "Belum Dicek", catatan: "" },
+                    foto: { name: "PasFoto_Daniyal_3x4.png", type: "image/png", dataUrl: createPlaceholderDocSVG("PAS FOTO 3x4", "Ahmad Daniyal H.", "#4338ca"), status: "Belum Dicek", catatan: "" }
+                }
+            }
+        ];
+
+        // Database di memori (diinisialisasi dari seed)
+        let applicantsDB = JSON.parse(JSON.stringify(SEED_APPLICANTS));
+        let googleSheetWebhookUrl = "";
+        let activeTahunAjaran = "2027/2028";
+
+        // ==========================================
+        // 3. INISIALISASI HALAMAN
+        // ==========================================
+        window.onload = function() {
+            lucide.createIcons();
+            syncActiveTahunUI();
+            setAutoRegistrationDate();
+            generateCaptcha();
+            initCropperEvents();
+            updateAdminStats();
+            renderAdminTable();
+        };
+
+        function setActiveTahunAjaran(val) {
+            activeTahunAjaran = val;
+            syncActiveTahunUI();
+            showToast(`Tahun Ajaran aktif berhasil diubah ke ${val}.`);
+        }
+
+        function syncActiveTahunUI() {
+            const headerLabel = document.getElementById('header-active-tahun-label');
+            if (headerLabel) headerLabel.textContent = activeTahunAjaran;
+            const bannerLabel = document.getElementById('banner-active-tahun-label');
+            if (bannerLabel) bannerLabel.textContent = activeTahunAjaran;
+            const pubLabel = document.getElementById('public-active-tahun-label');
+            if (pubLabel) pubLabel.textContent = activeTahunAjaran;
+            const admSelect = document.getElementById('admin-active-tahun-select');
+            if (admSelect) admSelect.value = activeTahunAjaran;
+        }
+
+        // Format tanggal Bahasa Indonesia otomatis
+        function getFormattedIndoDate(dateObj = new Date()) {
+            const bulanIndo = [
+                "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+                "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+            ];
+            return `Jember, ${dateObj.getDate()} ${bulanIndo[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+        }
+
+        function setAutoRegistrationDate() {
+            document.getElementById('auto-tanggal-daftar').textContent = getFormattedIndoDate();
+        }
+
+        function generateCaptcha() {
+            const a = Math.floor(Math.random() * 8) + 2;
+            const b = Math.floor(Math.random() * 7) + 1;
+            captchaExpected = a + b;
+            document.getElementById('captcha-question').textContent = `${a} + ${b}`;
+            document.getElementById('captcha-answer').value = '';
+        }
+
+        // ==========================================
+        // 4. NOTIFIKASI TOAST (PENGGANTI alert())
+        // ==========================================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colors = {
+                success: 'bg-pesantren-800 text-white border-pesantren-600',
+                error: 'bg-red-700 text-white border-red-500',
+                warning: 'bg-amber-600 text-white border-amber-400'
+            };
+            const icons = {
+                success: 'check-circle',
+                error: 'alert-circle',
+                warning: 'alert-triangle'
+            };
+
+            toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl border ${colors[type] || colors.success} text-xs sm:text-sm font-medium fade-in`;
+            toast.innerHTML = `
+                <i data-lucide="${icons[type] || 'info'}" class="w-5 h-5 shrink-0"></i>
+                <span class="flex-1">${message}</span>
+            `;
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // ==========================================
+        // 5. NAVIGASI UTAMA & STEPPER FORMULIR
+        // ==========================================
+        function switchMainView(view) {
+            document.getElementById('view-public').classList.add('hidden');
+            document.getElementById('view-success').classList.add('hidden');
+            document.getElementById('view-admin').classList.add('hidden');
+
+            const btnPub = document.getElementById('nav-btn-public');
+            const btnAdm = document.getElementById('nav-btn-admin');
+
+            if (view === 'public') {
+                document.getElementById('view-public').classList.remove('hidden');
+                btnPub.className = "px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-white text-pesantren-900 shadow-sm transition";
+                btnAdm.className = "px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-pesantren-800/80 hover:bg-pesantren-700 text-emas-100 border border-pesantren-600 flex items-center gap-1.5 transition";
+            } else if (view === 'admin') {
+                document.getElementById('view-admin').classList.remove('hidden');
+                btnAdm.className = "px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-emas-500 text-pesantren-950 shadow-sm flex items-center gap-1.5 transition";
+                btnPub.className = "px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-pesantren-800/80 hover:bg-pesantren-700 text-white border border-pesantren-600 transition";
+                
+                if (isAdminLoggedIn) {
+                    document.getElementById('admin-login-box').classList.add('hidden');
+                    document.getElementById('admin-dashboard-box').classList.remove('hidden');
+                    updateAdminStats();
+                    renderAdminTable();
+                } else {
+                    document.getElementById('admin-login-box').classList.remove('hidden');
+                    document.getElementById('admin-dashboard-box').classList.add('hidden');
+                }
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Hitung umur otomatis dari tanggal lahir
+        function calculateAge() {
+            const dobVal = document.getElementById('tanggal_lahir').value;
+            const umurInput = document.getElementById('umur');
+            if (!dobVal) {
+                umurInput.value = '';
+                return;
+            }
+            const dob = new Date(dobVal);
+            const today = new Date();
+            let age = today.getFullYear() - dob.getFullYear();
+            const m = today.getMonth() - dob.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                age--;
+            }
+            if (age < 0) {
+                umurInput.value = 'Tidak valid';
+            } else {
+                umurInput.value = `${age} Tahun`;
+            }
+        }
+
+        // Validasi format nomor HP Indonesia (08xx / +628xx)
+        function isValidIndoPhone(phone) {
+            const cleaned = phone.replace(/[\s-]/g, '');
+            return /^(\+62|62|0)8[1-9][0-9]{7,11}$/.test(cleaned);
+        }
+
+        function formatPhoneForWA(phone) {
+            let cleaned = phone.replace(/[^0-9]/g, '');
+            if (cleaned.startsWith('0')) {
+                cleaned = '62' + cleaned.substring(1);
+            } else if (!cleaned.startsWith('62')) {
+                cleaned = '62' + cleaned;
+            }
+            return cleaned;
+        }
+
+        function showFieldError(id, msg) {
+            const el = document.getElementById('err-' + id);
+            if (el) {
+                el.textContent = msg;
+                el.classList.remove('hidden');
+            }
+        }
+
+        function clearFieldErrors() {
+            document.querySelectorAll('[id^="err-"]').forEach(el => {
+                el.textContent = '';
+                el.classList.add('hidden');
+            });
+        }
+
+        function validateStep(step) {
+            clearFieldErrors();
+            let valid = true;
+
+            if (step === 1) {
+                const nama = document.getElementById('nama_lengkap').value.trim();
+                const tempat = document.getElementById('tempat_lahir').value.trim();
+                const tgl = document.getElementById('tanggal_lahir').value;
+                const alamat = document.getElementById('alamat_rumah').value.trim();
+                const sekolah = document.getElementById('sekolah_asal').value.trim();
+                const hp = document.getElementById('no_hp_santri').value.trim();
+
+                if (nama.length < 3) { showFieldError('nama_lengkap', 'Nama lengkap minimal 3 karakter.'); valid = false; }
+                if (!tempat) { showFieldError('tempat_lahir', 'Tempat lahir wajib diisi.'); valid = false; }
+                if (!tgl) { showFieldError('tanggal_lahir', 'Tanggal lahir wajib dipilih.'); valid = false; }
+                if (alamat.length < 8) { showFieldError('alamat_rumah', 'Mohon isi alamat lengkap rumah.'); valid = false; }
+                if (!sekolah) { showFieldError('sekolah_asal', 'Sekolah asal wajib diisi.'); valid = false; }
+                if (!isValidIndoPhone(hp)) { showFieldError('no_hp_santri', 'Format nomor HP tidak valid (contoh: 081234567890 atau +6281234567890).'); valid = false; }
+            }
+
+            if (step === 2) {
+                const ayah = document.getElementById('nama_ayah').value.trim();
+                const ibu = document.getElementById('nama_ibu').value.trim();
+                const hpOrtu = document.getElementById('no_hp_ortu').value.trim();
+
+                if (!ayah) { showFieldError('nama_ayah', 'Nama ayah wajib diisi.'); valid = false; }
+                if (!ibu) { showFieldError('nama_ibu', 'Nama ibu wajib diisi.'); valid = false; }
+                if (!isValidIndoPhone(hpOrtu)) { showFieldError('no_hp_ortu', 'Masukkan nomor WhatsApp orang tua yang valid (08xx / +628xx).'); valid = false; }
+            }
+
+            if (step === 3) {
+                if (!uploadedFiles.kk) {
+                    showFieldError('file-kk', 'Kartu Keluarga (KK) wajib diunggah.');
+                    valid = false;
+                }
+                if (!uploadedFiles.akta) {
+                    showFieldError('file-akta', 'Akta Kelahiran wajib diunggah.');
+                    valid = false;
+                }
+                if (!uploadedFiles.foto) {
+                    showFieldError('file-foto', 'Pas Foto 3x4 wajib diunggah.');
+                    valid = false;
+                }
+            }
+
+            if (!valid) {
+                showToast('Mohon lengkapi bagian yang ditandai merah terlebih dahulu.', 'error');
+            }
+            return valid;
+        }
+
+        function nextStep(fromStep) {
+            if (!validateStep(fromStep)) return;
+            goToStep(fromStep + 1, true);
+        }
+
+        function goToStep(targetStep, skipValidation = false) {
+            if (!skipValidation && targetStep > currentStep) {
+                for (let s = currentStep; s < targetStep; s++) {
+                    if (!validateStep(s)) return;
+                }
+            }
+
+            currentStep = targetStep;
+
+            // Sembunyikan semua panel langkah
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById(`form-step-${i}`).classList.add('hidden');
+                const circle = document.getElementById(`step-circle-${i}`);
+                const label = document.getElementById(`step-label-${i}`);
+
+                if (i < currentStep) {
+                    circle.className = "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-pesantren-600 text-white transition";
+                    circle.innerHTML = `<i data-lucide="check" class="w-5 h-5"></i>`;
+                    label.className = "text-xs font-bold text-pesantren-700 text-center";
+                } else if (i === currentStep) {
+                    circle.className = "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-pesantren-600 text-white ring-4 ring-pesantren-100 transition";
+                    circle.textContent = i;
+                    label.className = "text-xs font-bold text-pesantren-900 text-center";
+                } else {
+                    circle.className = "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-white border-2 border-stone-300 text-stone-500 transition";
+                    circle.textContent = i;
+                    label.className = "text-xs font-medium text-stone-500 text-center";
+                }
+            }
+
+            document.getElementById(`form-step-${currentStep}`).classList.remove('hidden');
+            const progressPercent = ((currentStep - 1) / 3) * 100;
+            document.getElementById('stepper-progress-bar').style.width = `${progressPercent}%`;
+
+            if (currentStep === 4) {
+                populateSummaryStep();
+            }
+
+            lucide.createIcons();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ==========================================
+        // 6. UNGGAH BERKAS, KOMPRESI OTOMATIS & CROPPER 3X4
+        // ==========================================
+        function handleDragOver(e, docType) {
+            e.preventDefault();
+            document.getElementById(`upload-card-${docType}`).classList.add('border-pesantren-600', 'bg-pesantren-50/60');
+        }
+
+        function handleDragLeave(e, docType) {
+            e.preventDefault();
+            document.getElementById(`upload-card-${docType}`).classList.remove('border-pesantren-600', 'bg-pesantren-50/60');
+        }
+
+        function handleDrop(e, docType) {
+            e.preventDefault();
+            document.getElementById(`upload-card-${docType}`).classList.remove('border-pesantren-600', 'bg-pesantren-50/60');
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                processUploadedFile(e.dataTransfer.files[0], docType);
+            }
+        }
+
+        function handleFileSelect(e, docType) {
+            if (e.target.files && e.target.files[0]) {
+                processUploadedFile(e.target.files[0], docType);
+            }
+            e.target.value = '';
+        }
+
+        async function processUploadedFile(file, docType) {
+            const errEl = document.getElementById(`err-file-${docType}`);
+            errEl.classList.add('hidden');
+
+            const isImage = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/webp';
+            const isPdf = file.type === 'application/pdf';
+
+            if (docType === 'foto' && !isImage) {
+                errEl.textContent = 'Pas foto harus berupa gambar format JPG atau PNG.';
+                errEl.classList.remove('hidden');
+                return;
+            }
+            if ((docType === 'kk' || docType === 'akta') && !isImage && !isPdf) {
+                errEl.textContent = 'Format berkas harus JPG, PNG, atau PDF.';
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            // Jika PDF dan lebih dari 2MB, tolak karena PDF tidak dikompres gambar
+            if (isPdf && file.size > 2 * 1024 * 1024) {
+                errEl.textContent = 'Ukuran file PDF melebihi batas maksimal 2 MB.';
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            // Tampilkan progress bar simulasi proses
+            const progWrap = document.getElementById(`progress-wrap-${docType}`);
+            const progBar = document.getElementById(`progress-bar-${docType}`);
+            progWrap.classList.remove('hidden');
+            progBar.style.width = '35%';
+
+            try {
+                if (isImage) {
+                    // Baca & kompres gambar otomatis di sisi klien jika > 1.5MB atau dimensi besar
+                    const compressedDataUrl = await compressImageClientSide(file, 1400, 0.82);
+                    progBar.style.width = '100%';
+                    setTimeout(() => progWrap.classList.add('hidden'), 300);
+
+                    if (docType === 'foto') {
+                        // Buka modal crop 3x4 untuk pas foto
+                        openCropperModal(compressedDataUrl, file.name);
+                    } else {
+                        uploadedFiles[docType] = {
+                            name: file.name,
+                            type: 'image/jpeg',
+                            dataUrl: compressedDataUrl
+                        };
+                        renderFilePreview(docType);
+                        showToast(`Berkas ${docType.toUpperCase()} berhasil diunggah & dioptimalkan.`);
+                    }
+                } else if (isPdf) {
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        progBar.style.width = '100%';
+                        setTimeout(() => progWrap.classList.add('hidden'), 300);
+                        uploadedFiles[docType] = {
+                            name: file.name,
+                            type: 'application/pdf',
+                            dataUrl: ev.target.result
+                        };
+                        renderFilePreview(docType);
+                        showToast(`Dokumen PDF ${docType.toUpperCase()} berhasil diunggah.`);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            } catch (err) {
+                progWrap.classList.add('hidden');
+                errEl.textContent = 'Gagal memproses berkas. Pastikan file tidak rusak.';
+                errEl.classList.remove('hidden');
+            }
+        }
+
+        // Fungsi kompresi gambar di browser menggunakan Canvas
+        function compressImageClientSide(file, maxDimension = 1400, quality = 0.82) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > maxDimension || height > maxDimension) {
+                            if (width > height) {
+                                height = Math.round((height * maxDimension) / width);
+                                width = maxDimension;
+                            } else {
+                                width = Math.round((width * maxDimension) / height);
+                                height = maxDimension;
+                            }
+                        }
+
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillRect(0, 0, width, height);
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        resolve(canvas.toDataURL('image/jpeg', quality));
+                    };
+                    img.onerror = reject;
+                    img.src = event.target.result;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Render pratinjau berkas pada kartu langkah 3
+        function renderFilePreview(docType) {
+            const fileObj = uploadedFiles[docType];
+            const previewEl = document.getElementById(`preview-${docType}`);
+            const actionsEl = document.getElementById(`actions-${docType}`);
+
+            if (!fileObj) {
+                previewEl.classList.add('hidden');
+                previewEl.innerHTML = '';
+                actionsEl.classList.remove('hidden');
+                return;
+            }
+
+            actionsEl.classList.add('hidden');
+            previewEl.classList.remove('hidden');
+
+            const isPdf = fileObj.type === 'application/pdf';
+            const thumbHtml = isPdf
+                ? `<div class="w-16 h-20 mx-auto rounded-lg bg-red-50 border border-red-200 flex flex-col items-center justify-center text-red-600">
+                        <i data-lucide="file-text" class="w-8 h-8"></i>
+                        <span class="text-[10px] font-bold mt-1">PDF</span>
+                   </div>`
+                : `<img src="${fileObj.dataUrl}" alt="${docType}" class="${docType === 'foto' ? 'w-20 h-28' : 'w-full h-28'} mx-auto object-cover rounded-lg border border-stone-200">`;
+
+            const extraCropBtn = docType === 'foto'
+                ? `<button type="button" onclick="openCropperModal('${fileObj.dataUrl}', '${fileObj.name}')" class="px-2.5 py-1.5 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold">Potong 3x4</button>`
+                : '';
+
+            previewEl.innerHTML = `
+                ${thumbHtml}
+                <p class="text-xs font-semibold text-slate-700 truncate mt-2 px-1" title="${fileObj.name}">${fileObj.name}</p>
+                <div class="flex items-center justify-center gap-1.5 mt-2.5">
+                    ${extraCropBtn}
+                    <button type="button" onclick="document.getElementById('input-file-${docType}').click()" class="px-2.5 py-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-slate-700 text-xs font-bold">Ganti</button>
+                    <button type="button" onclick="removeUploadedFile('${docType}')" class="px-2.5 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold">Hapus</button>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        function removeUploadedFile(docType) {
+            uploadedFiles[docType] = null;
+            renderFilePreview(docType);
+        }
+
+        // ---- CROPPER PAS FOTO 3X4 ----
+        let pendingPhotoName = 'PasFoto_3x4.jpg';
+
+        function openCropperModal(dataUrl, fileName) {
+            pendingPhotoName = fileName || 'PasFoto_3x4.jpg';
+            const img = new Image();
+            img.onload = function() {
+                cropState.img = img;
+                cropState.offsetX = 0;
+                cropState.offsetY = 0;
+                document.getElementById('crop-zoom').value = 1;
+                document.getElementById('modal-cropper').classList.remove('hidden');
+                drawCropCanvas();
+            };
+            img.src = dataUrl;
+        }
+
+        function closeCropperModal() {
+            document.getElementById('modal-cropper').classList.add('hidden');
+        }
+
+        function drawCropCanvas() {
+            const canvas = document.getElementById('crop-canvas');
+            const ctx = canvas.getContext('2d');
+            const img = cropState.img;
+            if (!img) return;
+
+            const zoom = parseFloat(document.getElementById('crop-zoom').value);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Skala agar menutupi kanvas 300x400 (rasio 3:4)
+            const baseScale = Math.max(canvas.width / img.width, canvas.height / img.height);
+            const scale = baseScale * zoom;
+            const drawW = img.width * scale;
+            const drawH = img.height * scale;
+
+            const centerX = (canvas.width - drawW) / 2 + cropState.offsetX;
+            const centerY = (canvas.height - drawH) / 2 + cropState.offsetY;
+
+            ctx.drawImage(img, centerX, centerY, drawW, drawH);
+        }
+
+        function initCropperEvents() {
+            const canvas = document.getElementById('crop-canvas');
+            
+            const startDrag = (clientX, clientY) => {
+                cropState.isDragging = true;
+                cropState.startX = clientX - cropState.offsetX;
+                cropState.startY = clientY - cropState.offsetY;
+            };
+            const moveDrag = (clientX, clientY) => {
+                if (!cropState.isDragging) return;
+                cropState.offsetX = clientX - cropState.startX;
+                cropState.offsetY = clientY - cropState.startY;
+                drawCropCanvas();
+            };
+            const endDrag = () => { cropState.isDragging = false; };
+
+            canvas.addEventListener('mousedown', e => startDrag(e.clientX, e.clientY));
+            window.addEventListener('mousemove', e => moveDrag(e.clientX, e.clientY));
+            window.addEventListener('mouseup', endDrag);
+
+            canvas.addEventListener('touchstart', e => {
+                if (e.touches.length === 1) startDrag(e.touches[0].clientX, e.touches[0].clientY);
+            }, { passive: true });
+            canvas.addEventListener('touchmove', e => {
+                if (e.touches.length === 1) {
+                    e.preventDefault();
+                    moveDrag(e.touches[0].clientX, e.touches[0].clientY);
+                }
+            }, { passive: false });
+            canvas.addEventListener('touchend', endDrag);
+        }
+
+        function saveCroppedPhoto() {
+            const canvas = document.getElementById('crop-canvas');
+            const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+            uploadedFiles.foto = {
+                name: pendingPhotoName,
+                type: 'image/jpeg',
+                dataUrl: croppedDataUrl
+            };
+            closeCropperModal();
+            renderFilePreview('foto');
+            showToast('Pas foto 3x4 berhasil dipotong dan disimpan.');
+        }
+
+        // ==========================================
+        // 7. RINGKASAN LANGKAH 4 & SUBMIT FORMULIR
+        // ==========================================
+        function populateSummaryStep() {
+            const tahunAjaran = activeTahunAjaran;
+            const nama = document.getElementById('nama_lengkap').value.trim();
+            const tempat = document.getElementById('tempat_lahir').value.trim();
+            const tgl = document.getElementById('tanggal_lahir').value;
+            const umur = document.getElementById('umur').value;
+            const alamat = document.getElementById('alamat_rumah').value.trim();
+            const sekolah = document.getElementById('sekolah_asal').value.trim();
+            const hobi = document.getElementById('hobi').value.trim() || '-';
+            const hpSantri = document.getElementById('no_hp_santri').value.trim();
+
+            document.getElementById('summary-santri').innerHTML = `
+                <div><dt class="text-xs text-slate-500">Tahun Ajaran</dt><dd class="font-bold text-pesantren-800">${tahunAjaran}</dd></div>
+                <div><dt class="text-xs text-slate-500">Nama Lengkap</dt><dd class="font-bold text-slate-900">${nama}</dd></div>
+                <div><dt class="text-xs text-slate-500">Tempat, Tanggal Lahir</dt><dd class="font-semibold text-slate-800">${tempat}, ${formatIndoShortDate(tgl)} (${umur})</dd></div>
+                <div><dt class="text-xs text-slate-500">Sekolah Asal</dt><dd class="font-semibold text-slate-800">${sekolah}</dd></div>
+                <div class="sm:col-span-2"><dt class="text-xs text-slate-500">Alamat Rumah</dt><dd class="font-semibold text-slate-800">${alamat}</dd></div>
+                <div class="sm:col-span-2"><dt class="text-xs text-slate-500">Hobi / No. HP Santri</dt><dd class="font-semibold text-slate-800">${hobi} • ${hpSantri}</dd></div>
+            `;
+
+            const ayah = document.getElementById('nama_ayah').value.trim();
+            const kerjaAyah = document.getElementById('pekerjaan_ayah').value.trim() || '-';
+            const ibu = document.getElementById('nama_ibu').value.trim();
+            const kerjaIbu = document.getElementById('pekerjaan_ibu').value.trim() || '-';
+            const hpOrtu = document.getElementById('no_hp_ortu').value.trim();
+
+            document.getElementById('summary-ortu').innerHTML = `
+                <div><dt class="text-xs text-slate-500">Nama Ayah</dt><dd class="font-bold text-slate-900">${ayah}</dd></div>
+                <div><dt class="text-xs text-slate-500">Pekerjaan Ayah</dt><dd class="font-semibold text-slate-800">${kerjaAyah}</dd></div>
+                <div><dt class="text-xs text-slate-500">Nama Ibu</dt><dd class="font-bold text-slate-900">${ibu}</dd></div>
+                <div><dt class="text-xs text-slate-500">Pekerjaan Ibu</dt><dd class="font-semibold text-slate-800">${kerjaIbu}</dd></div>
+                <div class="sm:col-span-2"><dt class="text-xs text-slate-500">No. Telp/HP (WA) Orang Tua/Wali</dt><dd class="font-bold text-pesantren-700">${hpOrtu}</dd></div>
+            `;
+
+            const docs = [
+                { key: 'kk', label: 'Kartu Keluarga (KK)' },
+                { key: 'akta', label: 'Akta Kelahiran' },
+                { key: 'foto', label: 'Pas Foto 3x4' }
+            ];
+
+            document.getElementById('summary-berkas').innerHTML = docs.map(d => {
+                const f = uploadedFiles[d.key];
+                const isPdf = f && f.type === 'application/pdf';
+                return `
+                    <div class="bg-white p-3 rounded-xl border border-stone-200 flex items-center gap-3">
+                        ${isPdf 
+                            ? `<div class="w-12 h-14 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shrink-0"><i data-lucide="file-text" class="w-6 h-6"></i></div>`
+                            : `<img src="${f.dataUrl}" class="w-12 h-14 object-cover rounded-lg border border-stone-200 shrink-0">`
+                        }
+                        <div class="min-w-0">
+                            <p class="text-xs font-bold text-slate-800">${d.label}</p>
+                            <p class="text-[11px] text-slate-500 truncate">${f.name}</p>
+                            <span class="inline-block text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded mt-0.5">Siap Dikirim</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        function formatIndoShortDate(isoStr) {
+            if (!isoStr) return '-';
+            const parts = isoStr.split('-');
+            const bulan = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+            return `${parts[2]} ${bulan[parseInt(parts[1], 10) - 1]} ${parts[0]}`;
+        }
+
+        // Generate Nomor Pendaftaran Otomatis: NNNN/PPSB/APIS/[bulan romawi]/2026
+        function generateRegistrationNumber() {
+            const romawi = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
+            const now = new Date();
+            const bulanRomawi = romawi[now.getMonth()];
+            const tahun = now.getFullYear();
+
+            // Cari nomor urut tertinggi yang sudah ada
+            let maxSeq = 0;
+            applicantsDB.forEach(item => {
+                const match = item.no_pendaftaran.match(/^(\d{4})\//);
+                if (match) {
+                    const num = parseInt(match[1], 10);
+                    if (num > maxSeq) maxSeq = num;
+                }
+            });
+            const nextSeq = String(maxSeq + 1).padStart(4, '0');
+            return `${nextSeq}/PPSB/APIS/${bulanRomawi}/${tahun}`;
+        }
+
+        // Submit Formulir Publik
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+
+            if (!document.getElementById('persetujuan_check').checked) {
+                showToast('Anda wajib mencentang pernyataan kesanggupan tata tertib.', 'error');
+                return;
+            }
+
+            const ans = parseInt(document.getElementById('captcha-answer').value, 10);
+            if (ans !== captchaExpected) {
+                showToast('Jawaban verifikasi anti-spam salah. Silakan hitung kembali.', 'error');
+                generateCaptcha();
+                return;
+            }
+
+            const nama = document.getElementById('nama_lengkap').value.trim();
+            const tglLahir = document.getElementById('tanggal_lahir').value;
+            const hpSantri = document.getElementById('no_hp_santri').value.trim();
+            const hpOrtu = document.getElementById('no_hp_ortu').value.trim();
+
+            // Cegah Pendaftaran Ganda (Nama + Tanggal Lahir + Nomor HP sama)
+            const isDuplicate = applicantsDB.some(a =>
+                a.nama_lengkap.toLowerCase() === nama.toLowerCase() &&
+                a.tanggal_lahir === tglLahir &&
+                (a.no_hp_santri === hpSantri || a.no_hp_ortu === hpOrtu)
+            );
+
+            if (isDuplicate) {
+                showToast('Peringatan: Data calon santri dengan Nama, Tanggal Lahir, dan Nomor HP yang sama sudah terdaftar sebelumnya!', 'warning');
+                return;
+            }
+
+            const noPendaftaran = generateRegistrationNumber();
+            const tanggalDaftar = getFormattedIndoDate();
+            const isoToday = new Date().toISOString().split('T')[0];
+
+            const newApplicant = {
+                id: 'reg-' + Date.now(),
+                no_pendaftaran: noPendaftaran,
+                tahun_ajaran: activeTahunAjaran,
+                nama_lengkap: nama,
+                tempat_lahir: document.getElementById('tempat_lahir').value.trim(),
+                tanggal_lahir: tglLahir,
+                umur: document.getElementById('umur').value,
+                alamat_rumah: document.getElementById('alamat_rumah').value.trim(),
+                sekolah_asal: document.getElementById('sekolah_asal').value.trim(),
+                hobi: document.getElementById('hobi').value.trim() || '-',
+                no_hp_santri: hpSantri,
+                nama_ayah: document.getElementById('nama_ayah').value.trim(),
+                pekerjaan_ayah: document.getElementById('pekerjaan_ayah').value.trim() || '-',
+                nama_ibu: document.getElementById('nama_ibu').value.trim(),
+                pekerjaan_ibu: document.getElementById('pekerjaan_ibu').value.trim() || '-',
+                no_hp_ortu: hpOrtu,
+                tanggal_daftar: tanggalDaftar,
+                iso_date: isoToday,
+                status: 'Baru',
+                petugas_penerima: '',
+                berkas: {
+                    kk: { ...uploadedFiles.kk, status: 'Belum Dicek', catatan: '' },
+                    akta: { ...uploadedFiles.akta, status: 'Belum Dicek', catatan: '' },
+                    foto: { ...uploadedFiles.foto, status: 'Belum Dicek', catatan: '' }
+                }
+            };
+
+            applicantsDB.unshift(newApplicant);
+
+            // Sinkron otomatis ke Google Sheet jika URL sudah diatur
+            await pushSingleToGoogleSheet(newApplicant);
+
+            // Tampilkan Halaman Sukses & Isi PDF
+            renderSuccessAndPDF(newApplicant);
+            showToast('Pendaftaran berhasil! Nomor pendaftaran Anda: ' + noPendaftaran);
+        }
+
+        function renderSuccessAndPDF(data) {
+            document.getElementById('view-public').classList.add('hidden');
+            document.getElementById('view-admin').classList.add('hidden');
+            document.getElementById('view-success').classList.remove('hidden');
+
+            document.getElementById('success-no-reg').textContent = data.no_pendaftaran;
+
+            // Tautan WhatsApp Konfirmasi ke Orang Tua
+            const waNumber = formatPhoneForWA(data.no_hp_ortu);
+            const waText = encodeURIComponent(
+                `Assalamu'alaikum Wr. Wb.\n\n` +
+                `Alhamdulillah, pendaftaran santri baru *PP. APIS Al Idrisy 2 Jember* telah berhasil dicatat.\n\n` +
+                `*No. Pendaftaran:* ${data.no_pendaftaran}\n` +
+                `*Tahun Ajaran:* ${data.tahun_ajaran || '2027/2028'}\n` +
+                `*Nama Calon Santri:* ${data.nama_lengkap}\n` +
+                `*Sekolah Asal:* ${data.sekolah_asal}\n` +
+                `*Tanggal Daftar:* ${data.tanggal_daftar}\n\n` +
+                `Mohon simpan bukti pendaftaran ini untuk proses verifikasi di pondok. Jazakumullahu khairan.`
+            );
+            document.getElementById('btn-wa-success').href = `https://wa.me/${waNumber}?text=${waText}`;
+
+            // Isi Dokumen Cetak PDF
+            document.getElementById('pdf-tahun-ajaran').textContent = data.tahun_ajaran || '2027/2028';
+            document.getElementById('pdf-no-reg').textContent = data.no_pendaftaran;
+            document.getElementById('pdf-status').textContent = data.status;
+            document.getElementById('pdf-pas-foto').src = data.berkas.foto?.dataUrl || '';
+            document.getElementById('pdf-nama').textContent = data.nama_lengkap;
+            document.getElementById('pdf-ttl').textContent = `${data.tempat_lahir}, ${formatIndoShortDate(data.tanggal_lahir)}`;
+            document.getElementById('pdf-umur').textContent = data.umur;
+            document.getElementById('pdf-alamat').textContent = data.alamat_rumah;
+            document.getElementById('pdf-sekolah').textContent = data.sekolah_asal;
+            document.getElementById('pdf-hobi').textContent = data.hobi || '-';
+            document.getElementById('pdf-hp-santri').textContent = data.no_hp_santri;
+
+            document.getElementById('pdf-ayah').textContent = data.nama_ayah;
+            document.getElementById('pdf-kerja-ayah').textContent = data.pekerjaan_ayah || '-';
+            document.getElementById('pdf-ibu').textContent = data.nama_ibu;
+            document.getElementById('pdf-kerja-ibu').textContent = data.pekerjaan_ibu || '-';
+            document.getElementById('pdf-hp-ortu').textContent = data.no_hp_ortu;
+
+            document.getElementById('pdf-tanggal-ttd').textContent = data.tanggal_daftar;
+            document.getElementById('pdf-petugas-nama').textContent = data.petugas_penerima ? `( ${data.petugas_penerima} )` : '( ........................................ )';
+            document.getElementById('pdf-ttd-ortu').textContent = `( ${data.nama_ayah} )`;
+            document.getElementById('pdf-ttd-santri').textContent = `( ${data.nama_lengkap} )`;
+
+            lucide.createIcons();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function resetForNewRegistration() {
+            document.getElementById('ppsb-form').reset();
+            uploadedFiles = { kk: null, akta: null, foto: null };
+            ['kk', 'akta', 'foto'].forEach(t => renderFilePreview(t));
+            generateCaptcha();
+            goToStep(1, true);
+            switchMainView('public');
+        }
+
+        // ==========================================
+        // 8. OTENTIKASI ADMIN (SHA-256 HASH)
+        // ==========================================
+        async function sha256Hex(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function handleAdminLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('admin-username').value.trim();
+            const pass = document.getElementById('admin-password').value;
+            const errEl = document.getElementById('login-error-msg');
+
+            const inputHash = await sha256Hex(pass);
+            // Verifikasi username & hash password (apis1828)
+            const expectedHash = await sha256Hex("apis1828");
+
+            if (user === ADMIN_USER && inputHash === expectedHash) {
+                isAdminLoggedIn = true;
+                errEl.classList.add('hidden');
+                document.getElementById('nav-admin-label').textContent = 'Dashboard';
+                switchMainView('admin');
+                showToast('Selamat datang di Panel Panitia PPSB.');
+            } else {
+                errEl.textContent = 'Username atau password salah. Silakan coba lagi.';
+                errEl.classList.remove('hidden');
+            }
+        }
+
+        function handleAdminLogout() {
+            isAdminLoggedIn = false;
+            document.getElementById('admin-password').value = '';
+            document.getElementById('nav-admin-label').textContent = 'Panitia';
+            switchMainView('public');
+            showToast('Anda telah keluar dari panel admin.');
+        }
+
+        // ==========================================
+        // 9. DASHBOARD ADMIN, STATISTIK & GRAFIK
+        // ==========================================
+        function onAdminTahunChange() {
+            currentPage = 1;
+            updateAdminStats();
+            renderAdminTable();
+        }
+
+        function updateAdminStats() {
+            const filterTahunEl = document.getElementById('admin-filter-tahun');
+            const filterTahun = filterTahunEl ? filterTahunEl.value : '';
+            const sourceData = filterTahun
+                ? applicantsDB.filter(a => (a.tahun_ajaran || '2027/2028') === filterTahun)
+                : applicantsDB;
+
+            const total = sourceData.length;
+            const todayStr = new Date().toISOString().split('T')[0];
+            const todayCount = sourceData.filter(a => a.iso_date === todayStr).length;
+            const unverifiedCount = sourceData.filter(a => a.status === 'Baru' || a.status === 'Berkas Lengkap').length;
+            const acceptedCount = sourceData.filter(a => a.status === 'Diterima').length;
+
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-today').textContent = todayCount;
+            document.getElementById('stat-unverified').textContent = unverifiedCount;
+            document.getElementById('stat-accepted').textContent = acceptedCount;
+
+            renderDailyChart(sourceData);
+        }
+
+        function renderDailyChart(sourceData = applicantsDB) {
+            const container = document.getElementById('daily-chart-container');
+            const days = [];
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const iso = d.toISOString().split('T')[0];
+                const label = `${d.getDate()}/${d.getMonth() + 1}`;
+                const count = sourceData.filter(a => a.iso_date === iso).length;
+                days.push({ label, count });
+            }
+
+            const maxVal = Math.max(...days.map(d => d.count), 3);
+
+            container.innerHTML = days.map(d => {
+                const heightPct = Math.round((d.count / maxVal) * 100);
+                return `
+                    <div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                        <span class="text-xs font-extrabold text-pesantren-800">${d.count}</span>
+                        <div class="w-full max-w-[38px] bg-pesantren-600/90 hover:bg-pesantren-700 rounded-t-lg transition-all" style="height: ${Math.max(heightPct, 8)}%"></div>
+                        <span class="text-[11px] font-medium text-slate-500">${d.label}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function resetAdminFilters() {
+            document.getElementById('admin-search').value = '';
+            document.getElementById('admin-filter-tahun').value = '';
+            document.getElementById('admin-filter-date').value = '';
+            document.getElementById('admin-filter-status').value = '';
+            currentPage = 1;
+            updateAdminStats();
+            renderAdminTable();
+        }
+
+        function renderAdminTable() {
+            const search = document.getElementById('admin-search').value.toLowerCase().trim();
+            const filterTahun = document.getElementById('admin-filter-tahun').value;
+            const filterDate = document.getElementById('admin-filter-date').value;
+            const filterStatus = document.getElementById('admin-filter-status').value;
+
+            const filtered = applicantsDB.filter(item => {
+                const matchSearch = !search ||
+                    item.nama_lengkap.toLowerCase().includes(search) ||
+                    item.no_pendaftaran.toLowerCase().includes(search) ||
+                    item.sekolah_asal.toLowerCase().includes(search);
+                const matchTahun = !filterTahun || (item.tahun_ajaran || '2027/2028') === filterTahun;
+                const matchDate = !filterDate || item.iso_date === filterDate;
+                const matchStatus = !filterStatus || item.status === filterStatus;
+                return matchSearch && matchTahun && matchDate && matchStatus;
+            });
+
+            const totalItems = filtered.length;
+            const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+            if (currentPage > totalPages) currentPage = totalPages;
+
+            const startIdx = (currentPage - 1) * itemsPerPage;
+            const pageItems = filtered.slice(startIdx, startIdx + itemsPerPage);
+
+            const tbody = document.getElementById('admin-table-body');
+            if (pageItems.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400 text-sm">Tidak ada data pendaftar yang sesuai filter.</td></tr>`;
+            } else {
+                tbody.innerHTML = pageItems.map(item => {
+                    const statusBadge = getStatusBadgeHtml(item.status);
+                    const needsFix = Object.values(item.berkas).some(b => b && b.status === 'Perlu Diperbaiki');
+                    const allVerified = Object.values(item.berkas).every(b => b && b.status === 'Sesuai');
+
+                    let docStatusHtml = `<span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-stone-100 text-slate-600">Menunggu Cek</span>`;
+                    if (needsFix) {
+                        docStatusHtml = `<span class="text-[11px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-700">Perlu Diperbaiki</span>`;
+                    } else if (allVerified) {
+                        docStatusHtml = `<span class="text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">3/3 Sesuai</span>`;
+                    }
+
+                    return `
+                        <tr class="hover:bg-stone-50/80 transition">
+                            <td class="py-3.5 px-4 whitespace-nowrap">
+                                <p class="font-mono text-xs font-bold text-pesantren-800">${item.no_pendaftaran}</p>
+                                <span class="inline-block text-[10px] font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 mt-0.5">TA ${item.tahun_ajaran || '2027/2028'}</span>
+                            </td>
+                            <td class="py-3.5 px-4">
+                                <p class="font-bold text-slate-900">${item.nama_lengkap}</p>
+                                <p class="text-xs text-slate-500">${item.sekolah_asal} • ${item.umur}</p>
+                            </td>
+                            <td class="py-3.5 px-4">
+                                <p class="font-semibold text-slate-800 text-xs">${item.nama_ayah}</p>
+                                <p class="text-xs text-pesantren-700 font-medium">${item.no_hp_ortu}</p>
+                            </td>
+                            <td class="py-3.5 px-4 whitespace-nowrap">${docStatusHtml}</td>
+                            <td class="py-3.5 px-4 whitespace-nowrap">${statusBadge}</td>
+                            <td class="py-3.5 px-4 text-right whitespace-nowrap">
+                                <div class="inline-flex items-center gap-1.5">
+                                    <button type="button" onclick="openDetailModal('${item.id}')" class="px-3 py-1.5 rounded-lg bg-pesantren-600 hover:bg-pesantren-700 text-white text-xs font-bold">
+                                        Detail & Verifikasi
+                                    </button>
+                                    <button type="button" onclick="confirmDeleteApplicant('${item.id}')" title="Hapus" class="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            // Info & Tombol Pagination
+            document.getElementById('pagination-info').textContent = totalItems === 0
+                ? 'Menampilkan 0 pendaftar'
+                : `Menampilkan ${startIdx + 1} - ${Math.min(startIdx + itemsPerPage, totalItems)} dari ${totalItems} pendaftar`;
+
+            let pagHtml = '';
+            for (let p = 1; p <= totalPages; p++) {
+                const activeCls = p === currentPage
+                    ? 'bg-pesantren-700 text-white font-bold'
+                    : 'bg-white border border-stone-300 text-slate-700 hover:bg-stone-100';
+                pagHtml += `<button type="button" onclick="changeAdminPage(${p})" class="w-8 h-8 rounded-lg text-xs ${activeCls}">${p}</button>`;
+            }
+            document.getElementById('pagination-controls').innerHTML = pagHtml;
+            lucide.createIcons();
+        }
+
+        function changeAdminPage(page) {
+            currentPage = page;
+            renderAdminTable();
+        }
+
+        function getStatusBadgeHtml(status) {
+            const map = {
+                'Baru': 'bg-blue-100 text-blue-800',
+                'Berkas Lengkap': 'bg-amber-100 text-amber-800',
+                'Terverifikasi': 'bg-purple-100 text-purple-800',
+                'Diterima': 'bg-emerald-100 text-emerald-800'
+            };
+            return `<span class="px-2.5 py-1 rounded-full text-xs font-bold ${map[status] || 'bg-stone-100 text-slate-700'}">${status}</span>`;
+        }
+
+        // ==========================================
+        // 10. DETAIL PENDAFTAR, VERIFIKASI BERKAS & ZIP
+        // ==========================================
+        function openDetailModal(id) {
+            activeDetailId = id;
+            const item = applicantsDB.find(a => a.id === id);
+            if (!item) return;
+
+            document.getElementById('detail-no-reg').textContent = item.no_pendaftaran;
+            document.getElementById('detail-nama-header').textContent = item.nama_lengkap;
+            document.getElementById('detail-status-select').value = item.status;
+            document.getElementById('detail-petugas-input').value = item.petugas_penerima || '';
+
+            document.getElementById('det-tahun-ajaran').textContent = item.tahun_ajaran || '2027/2028';
+            document.getElementById('det-nama').textContent = item.nama_lengkap;
+            document.getElementById('det-ttl').textContent = `${item.tempat_lahir}, ${formatIndoShortDate(item.tanggal_lahir)} (${item.umur})`;
+            document.getElementById('det-alamat').textContent = item.alamat_rumah;
+            document.getElementById('det-sekolah').textContent = item.sekolah_asal;
+            document.getElementById('det-hobi').textContent = item.hobi || '-';
+            document.getElementById('det-hp-santri').textContent = item.no_hp_santri;
+
+            document.getElementById('det-ayah').textContent = item.nama_ayah;
+            document.getElementById('det-kerja-ayah').textContent = item.pekerjaan_ayah || '-';
+            document.getElementById('det-ibu').textContent = item.nama_ibu;
+            document.getElementById('det-kerja-ibu').textContent = item.pekerjaan_ibu || '-';
+            document.getElementById('det-hp-ortu').textContent = item.no_hp_ortu;
+            document.getElementById('det-tgl-daftar').textContent = item.tanggal_daftar;
+
+            renderDetailDocuments(item);
+            document.getElementById('modal-admin-detail').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeDetailModal() {
+            document.getElementById('modal-admin-detail').classList.add('hidden');
+            activeDetailId = null;
+        }
+
+        function renderDetailDocuments(item) {
+            const docDefs = [
+                { key: 'kk', label: '1. Kartu Keluarga (KK)' },
+                { key: 'akta', label: '2. Akta Kelahiran' },
+                { key: 'foto', label: '3. Pas Foto 3x4' }
+            ];
+
+            const grid = document.getElementById('detail-berkas-grid');
+            grid.innerHTML = docDefs.map(d => {
+                const docObj = item.berkas[d.key];
+                if (!docObj) {
+                    return `<div class="border border-stone-200 rounded-xl p-4 text-center text-xs text-slate-400">Berkas ${d.label} belum diunggah</div>`;
+                }
+                const isPdf = docObj.type === 'application/pdf';
+                const previewMedia = isPdf
+                    ? `<div class="h-36 bg-red-50 rounded-lg flex flex-col items-center justify-center text-red-600 border border-red-100">
+                            <i data-lucide="file-text" class="w-10 h-10"></i>
+                            <span class="text-xs font-bold mt-1">Dokumen PDF</span>
+                       </div>`
+                    : `<img src="${docObj.dataUrl}" class="h-36 w-full object-cover rounded-lg border border-stone-200">`;
+
+                return `
+                    <div class="border border-stone-200 rounded-xl p-3.5 bg-stone-50/50 flex flex-col justify-between space-y-3">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold text-slate-800">${d.label}</span>
+                                <div class="flex items-center gap-1">
+                                    <button type="button" onclick="zoomDocument('${d.key}')" title="Perbesar" class="p-1.5 rounded-lg bg-white border border-stone-300 hover:bg-stone-100 text-slate-700">
+                                        <i data-lucide="zoom-in" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                    <a href="${docObj.dataUrl}" download="${docObj.name}" title="Unduh Berkas" class="p-1.5 rounded-lg bg-white border border-stone-300 hover:bg-stone-100 text-pesantren-700">
+                                        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            ${previewMedia}
+                        </div>
+
+                        <div class="space-y-2 pt-2 border-t border-stone-200">
+                            <label class="block text-[11px] font-bold text-slate-600">Status Verifikasi:</label>
+                            <select onchange="updateDocVerification('${d.key}', 'status', this.value)" class="w-full px-2.5 py-1.5 rounded-lg border border-stone-300 bg-white text-xs font-bold">
+                                <option value="Belum Dicek" ${docObj.status === 'Belum Dicek' ? 'selected' : ''}>Belum Dicek</option>
+                                <option value="Sesuai" ${docObj.status === 'Sesuai' ? 'selected' : ''}>✓ Sesuai</option>
+                                <option value="Perlu Diperbaiki" ${docObj.status === 'Perlu Diperbaiki' ? 'selected' : ''}>⚠ Perlu Diperbaiki</option>
+                            </select>
+                            <input type="text" value="${docObj.catatan || ''}" onchange="updateDocVerification('${d.key}', 'catatan', this.value)" placeholder="Catatan perbaikan (opsional)..." class="w-full px-2.5 py-1.5 rounded-lg border border-stone-300 bg-white text-xs">
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            updateWhatsAppRevisionButton(item);
+            lucide.createIcons();
+        }
+
+        function updateDocVerification(docKey, field, value) {
+            const item = applicantsDB.find(a => a.id === activeDetailId);
+            if (!item || !item.berkas[docKey]) return;
+
+            item.berkas[docKey][field] = value;
+
+            // Otomatis ubah status pendaftar jika semua berkas Sesuai
+            const allSesuai = ['kk', 'akta', 'foto'].every(k => item.berkas[k] && item.berkas[k].status === 'Sesuai');
+            if (allSesuai && item.status === 'Baru') {
+                item.status = 'Terverifikasi';
+                document.getElementById('detail-status-select').value = 'Terverifikasi';
+            }
+
+            updateWhatsAppRevisionButton(item);
+            updateAdminStats();
+            renderAdminTable();
+            showToast('Status verifikasi berkas diperbarui.');
+        }
+
+        function updateWhatsAppRevisionButton(item) {
+            const btn = document.getElementById('btn-wa-revision');
+            const issues = [];
+            const labels = { kk: 'Kartu Keluarga (KK)', akta: 'Akta Kelahiran', foto: 'Pas Foto 3x4' };
+
+            ['kk', 'akta', 'foto'].forEach(k => {
+                const doc = item.berkas[k];
+                if (doc && doc.status === 'Perlu Diperbaiki') {
+                    issues.push(`- *${labels[k]}*: ${doc.catatan || 'Mohon unggah ulang berkas yang lebih jelas.'}`);
+                }
+            });
+
+            if (issues.length > 0) {
+                const waNum = formatPhoneForWA(item.no_hp_ortu);
+                const msg = encodeURIComponent(
+                    `Assalamu'alaikum Wr. Wb.\n` +
+                    `Panitia PPSB *PP. APIS Al Idrisy 2 Jember* menginformasikan bahwa berkas pendaftaran atas nama *${item.nama_lengkap}* (${item.no_pendaftaran}) memerlukan perbaikan:\n\n` +
+                    `${issues.join('\n')}\n\n` +
+                    `Mohon segera dikonfirmasi kepada panitia. Terima kasih.`
+                );
+                btn.href = `https://wa.me/${waNum}?text=${msg}`;
+                btn.classList.remove('hidden');
+            } else {
+                btn.classList.add('hidden');
+            }
+        }
+
+        function updateApplicantField(field, value) {
+            const item = applicantsDB.find(a => a.id === activeDetailId);
+            if (!item) return;
+            item[field] = value;
+            updateAdminStats();
+            renderAdminTable();
+            showToast('Data pendaftar berhasil diperbarui.');
+        }
+
+        function zoomDocument(docKey) {
+            const item = applicantsDB.find(a => a.id === activeDetailId);
+            if (!item || !item.berkas[docKey]) return;
+            const doc = item.berkas[docKey];
+
+            document.getElementById('zoom-title').textContent = `${doc.name} - ${item.nama_lengkap}`;
+            const content = document.getElementById('zoom-content');
+
+            if (doc.type === 'application/pdf') {
+                content.innerHTML = `<iframe src="${doc.dataUrl}" class="w-full h-[70vh] rounded-lg bg-white"></iframe>`;
+            } else {
+                content.innerHTML = `<img src="${doc.dataUrl}" class="max-h-[72vh] w-auto object-contain rounded-lg">`;
+            }
+            document.getElementById('modal-zoom').classList.remove('hidden');
+        }
+
+        // Unduh Semua Berkas 1 Pendaftar dalam 1 File ZIP
+        async function downloadApplicantZip() {
+            const item = applicantsDB.find(a => a.id === activeDetailId);
+            if (!item) return;
+
+            try {
+                const zip = new JSZip();
+                const folderName = item.no_pendaftaran.replace(/\//g, '-') + '_' + item.nama_lengkap.replace(/\s+/g, '_');
+                const folder = zip.folder(folderName);
+
+                ['kk', 'akta', 'foto'].forEach(k => {
+                    const doc = item.berkas[k];
+                    if (doc && doc.dataUrl) {
+                        const base64Data = doc.dataUrl.split(',')[1];
+                        if (doc.dataUrl.startsWith('data:image/svg+xml')) {
+                            folder.file(`${k.toUpperCase()}_${item.nama_lengkap}.svg`, decodeURIComponent(base64Data));
+                        } else {
+                            folder.file(doc.name || `${k}.jpg`, base64Data, { base64: true });
+                        }
+                    }
+                });
+
+                const blob = await zip.generateAsync({ type: 'blob' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `Berkas_${folderName}.zip`;
+                link.click();
+                showToast('File ZIP seluruh berkas berhasil diunduh.');
+            } catch (err) {
+                showToast('Gagal membuat arsip ZIP.', 'error');
+            }
+        }
+
+        function printApplicantFromAdmin() {
+            const item = applicantsDB.find(a => a.id === activeDetailId);
+            if (!item) return;
+            closeDetailModal();
+            renderSuccessAndPDF(item);
+            setTimeout(() => window.print(), 400);
+        }
+
+        // ==========================================
+        // 11. HAPUS, TAMBAH MANUAL & EDIT PENDAFTAR
+        // ==========================================
+        let deleteTargetId = null;
+
+        function confirmDeleteApplicant(id) {
+            const item = applicantsDB.find(a => a.id === id);
+            if (!item) return;
+            deleteTargetId = id;
+            document.getElementById('delete-confirm-text').textContent = `Hapus data atas nama "${item.nama_lengkap}" (${item.no_pendaftaran})?`;
+            document.getElementById('modal-confirm-delete').classList.remove('hidden');
+
+            document.getElementById('btn-confirm-delete-exec').onclick = function() {
+                applicantsDB = applicantsDB.filter(a => a.id !== deleteTargetId);
+                closeDeleteModal();
+                updateAdminStats();
+                renderAdminTable();
+                showToast('Data pendaftar telah dihapus.');
+            };
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('modal-confirm-delete').classList.add('hidden');
+            deleteTargetId = null;
+        }
+
+        function openManualEntryModal() {
+            document.getElementById('admin-manual-form').reset();
+            document.getElementById('manual-id').value = '';
+            document.getElementById('m-tahun-ajaran').value = activeTahunAjaran;
+            document.getElementById('manual-modal-title').textContent = 'Tambah Pendaftar Manual (Datang Langsung)';
+            document.getElementById('modal-manual-form').classList.remove('hidden');
+        }
+
+        function openEditApplicantModal() {
+            const item = applicantsDB.find(a => a.id === activeDetailId);
+            if (!item) return;
+            closeDetailModal();
+
+            document.getElementById('manual-id').value = item.id;
+            document.getElementById('manual-modal-title').textContent = `Edit Data: ${item.no_pendaftaran}`;
+            document.getElementById('m-tahun-ajaran').value = item.tahun_ajaran || '2027/2028';
+            document.getElementById('m-nama').value = item.nama_lengkap;
+            document.getElementById('m-tempat').value = item.tempat_lahir;
+            document.getElementById('m-tgl-lahir').value = item.tanggal_lahir;
+            document.getElementById('m-alamat').value = item.alamat_rumah;
+            document.getElementById('m-sekolah').value = item.sekolah_asal;
+            document.getElementById('m-hobi').value = item.hobi === '-' ? '' : item.hobi;
+            document.getElementById('m-hp-santri').value = item.no_hp_santri;
+            document.getElementById('m-hp-ortu').value = item.no_hp_ortu;
+            document.getElementById('m-ayah').value = item.nama_ayah;
+            document.getElementById('m-kerja-ayah').value = item.pekerjaan_ayah === '-' ? '' : item.pekerjaan_ayah;
+            document.getElementById('m-ibu').value = item.nama_ibu;
+            document.getElementById('m-kerja-ibu').value = item.pekerjaan_ibu === '-' ? '' : item.pekerjaan_ibu;
+            document.getElementById('m-petugas').value = item.petugas_penerima || '';
+            document.getElementById('m-status').value = item.status;
+
+            document.getElementById('modal-manual-form').classList.remove('hidden');
+        }
+
+        function closeManualModal() {
+            document.getElementById('modal-manual-form').classList.add('hidden');
+        }
+
+        function readFileAsDataUrl(file) {
+            return new Promise((resolve) => {
+                if (!file) return resolve(null);
+                const reader = new FileReader();
+                reader.onload = e => resolve({ name: file.name, type: file.type, dataUrl: e.target.result });
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function saveManualApplicant(e) {
+            e.preventDefault();
+            const editId = document.getElementById('manual-id').value;
+            const tglLahir = document.getElementById('m-tgl-lahir').value;
+            const dob = new Date(tglLahir);
+            const age = Math.max(0, new Date().getFullYear() - dob.getFullYear()) + ' Tahun';
+
+            const fKK = await readFileAsDataUrl(document.getElementById('m-file-kk').files[0]);
+            const fAkta = await readFileAsDataUrl(document.getElementById('m-file-akta').files[0]);
+            const fFoto = await readFileAsDataUrl(document.getElementById('m-file-foto').files[0]);
+
+            if (editId) {
+                const idx = applicantsDB.findIndex(a => a.id === editId);
+                if (idx !== -1) {
+                    const existing = applicantsDB[idx];
+                    existing.tahun_ajaran = document.getElementById('m-tahun-ajaran').value;
+                    existing.nama_lengkap = document.getElementById('m-nama').value.trim();
+                    existing.tempat_lahir = document.getElementById('m-tempat').value.trim();
+                    existing.tanggal_lahir = tglLahir;
+                    existing.umur = age;
+                    existing.alamat_rumah = document.getElementById('m-alamat').value.trim();
+                    existing.sekolah_asal = document.getElementById('m-sekolah').value.trim();
+                    existing.hobi = document.getElementById('m-hobi').value.trim() || '-';
+                    existing.no_hp_santri = document.getElementById('m-hp-santri').value.trim();
+                    existing.no_hp_ortu = document.getElementById('m-hp-ortu').value.trim();
+                    existing.nama_ayah = document.getElementById('m-ayah').value.trim();
+                    existing.pekerjaan_ayah = document.getElementById('m-kerja-ayah').value.trim() || '-';
+                    existing.nama_ibu = document.getElementById('m-ibu').value.trim();
+                    existing.pekerjaan_ibu = document.getElementById('m-kerja-ibu').value.trim() || '-';
+                    existing.petugas_penerima = document.getElementById('m-petugas').value.trim();
+                    existing.status = document.getElementById('m-status').value;
+
+                    if (fKK) existing.berkas.kk = { ...fKK, status: 'Sesuai', catatan: '' };
+                    if (fAkta) existing.berkas.akta = { ...fAkta, status: 'Sesuai', catatan: '' };
+                    if (fFoto) existing.berkas.foto = { ...fFoto, status: 'Sesuai', catatan: '' };
+
+                    showToast('Perubahan data pendaftar berhasil disimpan.');
+                }
+            } else {
+                const newEntry = {
+                    id: 'manual-' + Date.now(),
+                    no_pendaftaran: generateRegistrationNumber(),
+                    tahun_ajaran: document.getElementById('m-tahun-ajaran').value,
+                    nama_lengkap: document.getElementById('m-nama').value.trim(),
+                    tempat_lahir: document.getElementById('m-tempat').value.trim(),
+                    tanggal_lahir: tglLahir,
+                    umur: age,
+                    alamat_rumah: document.getElementById('m-alamat').value.trim(),
+                    sekolah_asal: document.getElementById('m-sekolah').value.trim(),
+                    hobi: document.getElementById('m-hobi').value.trim() || '-',
+                    no_hp_santri: document.getElementById('m-hp-santri').value.trim(),
+                    nama_ayah: document.getElementById('m-ayah').value.trim(),
+                    pekerjaan_ayah: document.getElementById('m-kerja-ayah').value.trim() || '-',
+                    nama_ibu: document.getElementById('m-ibu').value.trim(),
+                    pekerjaan_ibu: document.getElementById('m-kerja-ibu').value.trim() || '-',
+                    no_hp_ortu: document.getElementById('m-hp-ortu').value.trim(),
+                    tanggal_daftar: getFormattedIndoDate(),
+                    iso_date: new Date().toISOString().split('T')[0],
+                    status: document.getElementById('m-status').value,
+                    petugas_penerima: document.getElementById('m-petugas').value.trim() || 'Admin PPSB',
+                    berkas: {
+                        kk: fKK ? { ...fKK, status: 'Sesuai', catatan: '' } : { name: 'KK_Fisik.svg', type: 'image/svg+xml', dataUrl: createPlaceholderDocSVG('KK FISIK', 'Diserahkan ke Panitia', '#166534'), status: 'Sesuai', catatan: '' },
+                        akta: fAkta ? { ...fAkta, status: 'Sesuai', catatan: '' } : { name: 'Akta_Fisik.svg', type: 'image/svg+xml', dataUrl: createPlaceholderDocSVG('AKTA FISIK', 'Diserahkan ke Panitia', '#15803d'), status: 'Sesuai', catatan: '' },
+                        foto: fFoto ? { ...fFoto, status: 'Sesuai', catatan: '' } : { name: 'Foto_Fisik.svg', type: 'image/svg+xml', dataUrl: createPlaceholderDocSVG('PAS FOTO 3x4', 'Diserahkan ke Panitia', '#b45309'), status: 'Sesuai', catatan: '' }
+                    }
+                };
+                applicantsDB.unshift(newEntry);
+                await pushSingleToGoogleSheet(newEntry);
+                showToast('Pendaftar manual baru berhasil ditambahkan.');
+            }
+
+            closeManualModal();
+            updateAdminStats();
+            renderAdminTable();
+        }
+
+        // ==========================================
+        // 12. EKSPOR EXCEL (.XLSX) & CSV
+        // ==========================================
+        function buildExportRows() {
+            return applicantsDB.map((a, index) => ({
+                "No": index + 1,
+                "No. Pendaftaran": a.no_pendaftaran,
+                "Tahun Ajaran": a.tahun_ajaran || "2027/2028",
+                "Tanggal Daftar": a.tanggal_daftar,
+                "Nama Lengkap": a.nama_lengkap,
+                "Tempat Lahir": a.tempat_lahir,
+                "Tanggal Lahir": a.tanggal_lahir,
+                "Umur": a.umur,
+                "Alamat Rumah": a.alamat_rumah,
+                "Sekolah Asal": a.sekolah_asal,
+                "Hobi": a.hobi,
+                "No. HP Santri (WA)": a.no_hp_santri,
+                "Nama Ayah": a.nama_ayah,
+                "Pekerjaan Ayah": a.pekerjaan_ayah,
+                "Nama Ibu": a.nama_ibu,
+                "Pekerjaan Ibu": a.pekerjaan_ibu,
+                "No. HP Orang Tua (WA)": a.no_hp_ortu,
+                "Status Berkas KK": a.berkas.kk ? `Ada (${a.berkas.kk.status})` : 'Belum Ada',
+                "Status Berkas Akta": a.berkas.akta ? `Ada (${a.berkas.akta.status})` : 'Belum Ada',
+                "Status Pas Foto 3x4": a.berkas.foto ? `Ada (${a.berkas.foto.status})` : 'Belum Ada',
+                "Status Pendaftaran": a.status,
+                "Petugas Penerima": a.petugas_penerima || '-'
+            }));
+        }
+
+        function exportToExcel() {
+            const rows = buildExportRows();
+            const worksheet = XLSX.utils.json_to_sheet(rows);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Data_PPSB_2027_2035");
+            XLSX.writeFile(workbook, "Data_Pendaftar_PPSB_APIS_Al_Idrisy_2_Jember.xlsx");
+            showToast('File Excel (.xlsx) berhasil diunduh.');
+        }
+
+        function exportToCSV() {
+            const rows = buildExportRows();
+            const worksheet = XLSX.utils.json_to_sheet(rows);
+            const csv = XLSX.utils.sheet_to_csv(worksheet);
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = "Data_Pendaftar_PPSB_APIS_Al_Idrisy_2_Jember.csv";
+            link.click();
+            showToast('File CSV berhasil diunduh.');
+        }
+
+        // ==========================================
+        // 13. INTEGRASI SINKRONISASI GOOGLE SHEET
+        // ==========================================
+        function openGoogleSheetModal() {
+            document.getElementById('gsheet-webhook-url').value = googleSheetWebhookUrl;
+            document.getElementById('modal-gsheet').classList.remove('hidden');
+        }
+
+        function saveGSheetWebhook() {
+            googleSheetWebhookUrl = document.getElementById('gsheet-webhook-url').value.trim();
+            showToast(googleSheetWebhookUrl ? 'URL Webhook Google Sheet disimpan!' : 'URL Webhook dikosongkan.');
+        }
+
+        async function pushSingleToGoogleSheet(item) {
+            if (!googleSheetWebhookUrl) return;
+            const payload = {
+                no_pendaftaran: item.no_pendaftaran,
+                tahun_ajaran: item.tahun_ajaran || "2027/2028",
+                tanggal_daftar: item.tanggal_daftar,
+                nama_lengkap: item.nama_lengkap,
+                tempat_lahir: item.tempat_lahir,
+                tanggal_lahir: item.tanggal_lahir,
+                umur: item.umur,
+                alamat_rumah: item.alamat_rumah,
+                sekolah_asal: item.sekolah_asal,
+                hobi: item.hobi,
+                no_hp_santri: item.no_hp_santri,
+                nama_ayah: item.nama_ayah,
+                pekerjaan_ayah: item.pekerjaan_ayah,
+                nama_ibu: item.nama_ibu,
+                pekerjaan_ibu: item.pekerjaan_ibu,
+                no_hp_ortu: item.no_hp_ortu,
+                status_kk: item.berkas.kk ? `Ada (${item.berkas.kk.status})` : 'Kosong',
+                status_akta: item.berkas.akta ? `Ada (${item.berkas.akta.status})` : 'Kosong',
+                status_foto: item.berkas.foto ? `Ada (${item.berkas.foto.status})` : 'Kosong',
+                status: item.status,
+                petugas_penerima: item.petugas_penerima || '-',
+                file_kk_base64: item.berkas.kk ? item.berkas.kk.dataUrl : '',
+                file_akta_base64: item.berkas.akta ? item.berkas.akta.dataUrl : '',
+                file_foto_base64: item.berkas.foto ? item.berkas.foto.dataUrl : ''
+            };
+
+            try {
+                await fetch(googleSheetWebhookUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            } catch (err) {
+                console.error('Google Sheet Sync Error:', err);
+            }
+        }
+
+        async function syncAllToGoogleSheet() {
+            if (!googleSheetWebhookUrl) {
+                showToast('Masukkan URL Web App Google Apps Script terlebih dahulu.', 'warning');
+                return;
+            }
+            for (const item of applicantsDB) {
+                await pushSingleToGoogleSheet(item);
+            }
+            showToast(`Berhasil mengirim ${applicantsDB.length} data pendaftar ke Google Sheet.`);
+        }
+
+        function copyAppsScriptCode() {
+            const text = document.getElementById('apps-script-snippet').textContent;
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showToast('Kode Google Apps Script disalin ke clipboard.');
+        }
+    </script>
+</body>
+</html>
